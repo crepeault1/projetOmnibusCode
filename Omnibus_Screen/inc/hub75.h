@@ -1,9 +1,9 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef HUB75_H
+#define HUB75_H
 /**
  ******************************************************************************
- * @file           : main.h
- * @brief          : Main program header
+ * @file           : hub75.h
+ * @brief          : Main program body
  * @author         : Samuel Crepeault
  *
  ******************************************************************************
@@ -36,55 +36,14 @@
  ******************************************************************************
  */
 
-/* Includes ------------------------------------------------------------------*/
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
+ /* Includes ------------------------------------------------------------------*/
 
-#include "pico/stdlib.h"
-#include "hardware/i2c.h"
-#include "hardware/dma.h"
-#include "hardware/pio.h"
-#include "hardware/gpio.h"
-#include "hardware/timer.h"
-#include "hardware/uart.h"
 /* Defines -------------------------------------------------------------------*/
-//UART
-#define UART_ID uart0 // stdout sur usb
-#define BAUD_RATE 115200
-#define UART_TX_PIN 0
-#define UART_RX_PIN 1
 
-//I2C
-#define I2C_PORT i2c1 // 400khz
-#define I2C_SDA 2
-#define I2C_SCL 3
-
-//Switches
-#define SW1_PIN 4
-#define SW2_PIN 5
-#define SW3_PIN 6
-
-//Buffer enables
-#define BUF2_EN_PIN 7
-#define BUF1_EN_PIN 16
-
-//HUB75 lines
-#define ROWSEL_BASE_PIN 8
-#define ROWSEL_N_PINS 5  //5 car ABCDE, sinon 4
-#define CLK_PIN 13
-#define STROBE_PIN 14
-#define OEN_PIN 15
-#define DATA_BASE_PIN 17
-#define DATA_N_PINS 6
-
-//Encoder
-#define ENC_A_PIN 26
-#define ENC_B_PIN 27
-#define ENC_BUT_PIN 28
 /* Variables ---------------------------------------------------------------- */
 
 /* Fonctions -----------------------------------------------------------------*/
-int64_t alarm_callback(alarm_id_t id, void *user_data);
+static inline uint32_t gamma_correct_565_888(uint16_t pix);
+void HUB75_execute(void);
 
  #endif

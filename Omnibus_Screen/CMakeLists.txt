@@ -37,6 +37,8 @@ pico_sdk_init()
 
 add_executable(Omnibus_Screen src/Omnibus_Screen.c 
                src/hub75.c
+               src/frame_assembly.c
+               src/font_5x7.c
 )
 
 pico_set_program_name(Omnibus_Screen "Omnibus_Screen")

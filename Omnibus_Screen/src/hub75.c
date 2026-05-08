@@ -13,31 +13,23 @@
  ******************************************************************************
  */
 
-#include <stdio.h>
-
-#include "pico/stdlib.h"
-#include "hardware/gpio.h"
-#include "hardware/pio.h"
+#include "main.h"
 #include "hub75.pio.h"
+#include "hub75.h"
+#include "frame_assembly.h"
 
 //#include "mountains_128x64_rgb565.h"
 //#include "smpte.h"
 //#include "test_corners.h"
-#include "template1.h"
+#include "template3.h"
 #include "template2.h"
-
-#define DATA_BASE_PIN 0
-#define DATA_N_PINS 6
-#define ROWSEL_BASE_PIN 6
-#define ROWSEL_N_PINS 5  //5 car ABCDE, sinon 4
-#define CLK_PIN 11
-#define STROBE_PIN 12
-#define OEN_PIN 13
 
 #define WIDTH 128
 #define HEIGHT 64
 
+//==============================================================================
 static inline uint32_t gamma_correct_565_888(uint16_t pix)
+//==============================================================================
 {
     uint32_t r_gamma = pix & 0xf800u;
     r_gamma *= r_gamma;
@@ -48,9 +40,10 @@ static inline uint32_t gamma_correct_565_888(uint16_t pix)
     return (b_gamma >> 2 << 16) | (g_gamma >> 14 << 8) | (r_gamma >> 24 << 0);
 }
 
-int HUB75_execute() {
-    stdio_init_all();
-
+//==============================================================================
+void HUB75_execute(void)
+//==============================================================================
+{
     PIO pio = pio0;
     uint sm_data = 0;
     uint sm_row = 1;
@@ -63,19 +56,20 @@ int HUB75_execute() {
 
     static uint32_t gc_row[2][WIDTH];
     //const uint16_t *img = (const uint16_t*)mountains_128x64;
-    const uint16_t *img = (const uint16_t*)template2_image;
+    //const uint16_t *img = (const uint16_t*)template3_image;
+    const uint16_t *img = (const uint16_t*)frame_buffer_1;
 
     while (1) {
-        for (int rowsel = 0; rowsel < (1 << ROWSEL_N_PINS); ++rowsel) {
-            for (int x = 0; x < WIDTH; ++x) {
-                gc_row[0][x] = gamma_correct_565_888(img[rowsel * WIDTH + x]);
-                gc_row[1][x] = gamma_correct_565_888(img[((1u << ROWSEL_N_PINS) + rowsel) * WIDTH + x]);
+        for (int rowsel = 0; rowsel < (1 << ROWSEL_N_PINS); rowsel++) {
+            for (int columnsel = 0; columnsel < WIDTH; columnsel++) {
+                gc_row[0][columnsel] = gamma_correct_565_888(img[rowsel * WIDTH + columnsel]);
+                gc_row[1][columnsel] = gamma_correct_565_888(img[((1u << ROWSEL_N_PINS) + rowsel) * WIDTH + columnsel]);
             }
             for (int bit = 0; bit < 8; ++bit) {
                 hub75_data_rgb888_set_shift(pio, sm_data, data_prog_offs, bit);
-                for (int x = 0; x < WIDTH; ++x) {
-                    pio_sm_put_blocking(pio, sm_data, gc_row[0][x]);
-                    pio_sm_put_blocking(pio, sm_data, gc_row[1][x]);
+                for (int columnsel = 0; columnsel < WIDTH; columnsel++) {
+                    pio_sm_put_blocking(pio, sm_data, gc_row[0][columnsel]);
+                    pio_sm_put_blocking(pio, sm_data, gc_row[1][columnsel]);
                 }
                 // Dummy pixel per lane
                 pio_sm_put_blocking(pio, sm_data, 0);
