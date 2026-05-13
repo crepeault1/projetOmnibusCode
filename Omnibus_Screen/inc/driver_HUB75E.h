@@ -1,9 +1,9 @@
-#ifndef HUB75_H
-#define HUB75_H
+#ifndef HUB75E_H
+#define HUB75E_H
 /**
  ******************************************************************************
- * @file           : hub75.h
- * @brief          : Main program body
+ * @file           : driver_HUB75E.h
+ * @brief          : 
  * @author         : Samuel Crepeault
  *
  ******************************************************************************
@@ -30,20 +30,31 @@
  *             GND - 18  |                  |  23 - GND
  *      LAT - GP14 - 19  | O              O |  22 - GP17 - R0
  *       OE - GP15 - 20  |__________________|  21 - GP16 - BUF1_EN
- * 
+ *
  * @attention
  * 3V3_EN devrait etre au GND.
  ******************************************************************************
  */
 
- /* Includes ------------------------------------------------------------------*/
+/* Includes ------------------------------------------------------------------*/
 
 /* Defines -------------------------------------------------------------------*/
 
 /* Variables ---------------------------------------------------------------- */
+typedef struct
+{
+    uint data_prog_offs;
+    uint row_prog_offs;
+    PIO pio;
+    uint sm_data;
+    uint sm_row;
+} DRIVERHUB75E;
 
-/* Fonctions -----------------------------------------------------------------*/
+extern DRIVERHUB75E driver_HUB75E;
+
+/* Functions -----------------------------------------------------------------*/
+void driver_HUB75E_init(void);
 static inline uint32_t gamma_correct_565_888(uint16_t pix);
-void HUB75_execute(void);
+void driver_HUB75E_run(int);
 
- #endif
+#endif

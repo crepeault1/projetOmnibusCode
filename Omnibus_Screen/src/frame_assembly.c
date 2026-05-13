@@ -39,6 +39,56 @@ uint8_t frame_start[8][21] = {
     {"     ver. 1.0.0      "},
     {"                     "}};
 
+uint8_t frame_menu[8][21] = {
+    {"12:17:03 <> OO |<oo &"},
+    {"                     "},
+    {"MENU                 "},
+    {"  ARRETS ACTIFS    <<"},
+    {"  MODE D'AFFICHAGE   "},
+    {"  CONNEXION WIFI     "},
+    {"  SYNCHRONISATION    "},
+    {"  FORMAT D'HEURE     "}};
+
+uint8_t frame_test0[8][21] = {
+    {"                     "},
+    {"                     "},
+    {"                     "},
+    {"          0          "},
+    {"                     "},
+    {"                     "},
+    {"                     "},
+    {"                     "}};
+
+uint8_t frame_test1[8][21] = {
+    {"                     "},
+    {"                     "},
+    {"                     "},
+    {"          1          "},
+    {"                     "},
+    {"                     "},
+    {"                     "},
+    {"                     "}};
+
+uint8_t frame_test2[8][21] = {
+    {"                     "},
+    {"                     "},
+    {"                     "},
+    {"          2          "},
+    {"                     "},
+    {"                     "},
+    {"                     "},
+    {"                     "}};
+
+uint8_t frame_test3[8][21] = {
+    {"                     "},
+    {"                     "},
+    {"                     "},
+    {"          3          "},
+    {"                     "},
+    {"                     "},
+    {"                     "},
+    {"                     "}};
+
 bool pixel_buffer_1[PIXEL_BUFFER_ROWS][PIXEL_BUFFER_COLUMNS];
 bool pixel_buffer_2[PIXEL_BUFFER_ROWS][PIXEL_BUFFER_COLUMNS];
 

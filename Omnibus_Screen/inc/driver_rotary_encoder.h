@@ -1,39 +1,37 @@
-#ifndef FONT_H
-#define FONT_H
+#ifndef DRIVERENCODER_H
+#define DRIVERENCODER_H
 /**
  ******************************************************************************
- * @file           : font.h
- * @brief          : Character binary values
+ * @file           : driver_rotary_encoder.h
+ * @brief          :
  * @author         : Samuel Crepeault
  *
  ******************************************************************************
  * @details
- * Font is 5x7 and is packed in 6x8 boxes. Each box contains a
+ * ENCODER - GPIO - PIN - FUNCTION
  *
- *
- * @attention
- *
+ * ENC_A   - GP4  -  6  - Clockwise/counterclockwise
+ * ENC_B   - GP5  -  7  - Clockwise/counterclockwise
+ * ENC_BUT - GP6  -  9  - None yet
  ******************************************************************************
  */
-
 /* Includes ------------------------------------------------------------------*/
 
 /* Defines -------------------------------------------------------------------*/
-#define FONT_5X7_CELL_WIDTH 6
-#define FONT_5X7_CELL_HEIGHT 8
-#define FONT_5X7_VISIBLE_WIDTH 5
-#define FONT_5X7_VISIBLE_HEIGHT 7
-#define FONT_5X7_GLYPH_BYTES 8
-#define FONT_5X7_NUM_GLYPHS 136
 
-#define GLYPH_MISSING 0
-#define UP_ARROW 130
-#define DOWN_ARROW 131
 /* Variables ---------------------------------------------------------------- */
-extern const uint8_t byte_to_glyph[256];
-extern const uint8_t glyph_5x7[FONT_5X7_NUM_GLYPHS][FONT_5X7_GLYPH_BYTES];
+typedef struct
+{
+  unsigned long count;
+  unsigned char information;
+} DRIVER_ENCODER;
 
+extern DRIVER_ENCODER driver_encoder;
 /* Functions -----------------------------------------------------------------*/
-const uint8_t* get_glyph(uint8_t input_character);
+void driver_encoder_init(void);
+uint8_t driver_encoder_read(void);
+bool driver_encoder_button_read(void);
+
+static void encoder_gpio_callback(uint gpio, uint32_t events);
 
 #endif

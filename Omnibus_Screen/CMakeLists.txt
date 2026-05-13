@@ -35,10 +35,18 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Omnibus_Screen src/Omnibus_Screen.c 
-               src/hub75.c
+add_executable(Omnibus_Screen src/Omnibus_Screen.c
+               src/driver_HUB75E.c
                src/frame_assembly.c
                src/font_5x7.c
+               src/driver_timer.c
+               src/driver_buttons.c
+               src/driver_rotary_encoder.c
+               src/service_scheduler.c
+               src/interface_buttons.c
+               src/interface_rotary_encoder.c
+               src/process_button_actions.c
+               src/process_rotary_encoder_actions.c
 )
 
 pico_set_program_name(Omnibus_Screen "Omnibus_Screen")
@@ -72,4 +80,3 @@ target_link_libraries(Omnibus_Screen
         )
 
 pico_add_extra_outputs(Omnibus_Screen)
-

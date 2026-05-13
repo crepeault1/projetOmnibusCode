@@ -82,9 +82,62 @@
 #define ENC_A_PIN 26
 #define ENC_B_PIN 27
 #define ENC_BUT_PIN 28
+
+
+//Service Scheduler Start------------------
+#define SCHEDULER_PHASES 10
+
+//Data IN
+#define PHASE_SERVICE_SERIAL_IN 0 
+#define PHASE_INTERFACE_BUTTON1 1
+#define PHASE_INTERFACE_BUTTON2 2
+#define PHASE_INTERFACE_BUTTON3 3
+#define PHASE_INTERFACE_ROTARY_ENC_BUTTON 4
+#define PHASE_INTERFACE_ROTARY_ENC 5
+
+//Traitement
+#define PHASE_PROCESS_BUTTONS 6
+#define PHASE_PROCESS_ROTARY_ENC 7
+#define PHASE_PROCESS_FRAME_ASSEMBLY 8
+
+//Data OUT
+#define PHASE_SERVICE_SERIAL_OUT 9
+//Service Scheduler End--------------------
+
+
+
+#define INFORMATION_AVAILABLE  1
+#define INFORMATION_HANDLED  0
+#define REQUEST_ACTIVE  1
+#define REQUEST_HANDLED 0
+#define CLOCKWISE 1
+#define COUNTERCLOCKWISE 0
+#define UNKNOWN 2
+
+#define OSC_FREQ 150000000.0
+#define SCHEDULER_FREQ_HZ 1000.0
+#define PRESCALER  (OSC_FREQ / SCHEDULER_FREQ_HZ / 65536 + 1)
+#define TIMER_FREQ_HZ  (SCHEDULER_FREQ_HZ / PRESCALER)
+#define TICKS_PER_PERIOD  (uint64_t)(TIMER_FREQ_HZ / SCHEDULER_FREQ_HZ)
+
+//BUTTON
+#define INTERFACEBUTTON_READ_FREQ  100.0
+#define INTERFACEBUTTON_NECESSARY_BUTTON_READS 5
+#define INTERFACEBUTTON_VALUE_IF_PRESSED  0
+#define INTERFACEBUTTON_VALUE_IF_UNPRESSED 1
+
+//ENCODER
+#define INTERFACEENCODER_READ_FREQ  20.0
+#define INTERFACEENCODER_NECESSARY_BUTTON_READS 5
+#define INTERFACEENCODER_VALUE_IF_PRESSED  0
+#define INTERFACEENCODER_VALUE_IF_UNPRESSED 1
+
+#define PROCESSUS_AFFCHAGE_REFRESH_RATE_MS 100
+
 /* Variables ---------------------------------------------------------------- */
+extern int screenval;
 
-/* Fonctions -----------------------------------------------------------------*/
+/* Prototypes ----------------------------------------------------------------*/
 int64_t alarm_callback(alarm_id_t id, void *user_data);
-
+void do_nothing(void);
  #endif

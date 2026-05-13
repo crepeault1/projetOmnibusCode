@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file           : Omnibus_Screen.cpp
+ * @file           : Omnibus_Screen.c
  * @brief          : Main program body
  * @author         : Samuel Crepeault
  *
@@ -30,17 +30,33 @@
  *       OE - GP15 - 20  |__________________|  21 - GP16 - BUF1_EN
  *
  * @attention
- * 3V3_EN devrait etre au GND.
+ *
  ******************************************************************************
  */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "hub75.h"
 #include "font_5x7.h"
 #include "frame_assembly.h"
-/* Defines -------------------------------------------------------------------*/
 
+//Services
+#include "service_scheduler.h"
+
+//Drivers
+#include "driver_buttons.h"
+#include "driver_rotary_encoder.h"
+#include "driver_timer.h"
+#include "driver_HUB75E.h"
+
+//Interfaces
+#include "interface_buttons.h"
+#include "interface_rotary_encoder.h"
+
+//Processes
+#include "process_button_actions.h"
+#include "process_rotary_encoder_actions.h"
+
+/* Defines -------------------------------------------------------------------*/
 
 #define WIDTH 128
 #define HEIGHT 64
@@ -48,6 +64,8 @@
 /* Variables ---------------------------------------------------------------- */
 const char src[] = "Hello, world! (from DMA)";
 char dst[count_of(src)];
+int screenval = 0;
+
 
 /* Fonctions -----------------------------------------------------------------*/
 
@@ -59,15 +77,24 @@ void init(void)
 {
     stdio_init_all();
 
-    //Encoder GPIO init
-    gpio_pull_up(ENC_A_PIN);
-    gpio_pull_up(ENC_B_PIN);
-    gpio_pull_up(ENC_BUT_PIN);
+    //Services
+    service_scheduler_init();
 
-    //Switch GPIO init
-    gpio_pull_up(SW1_PIN);
-    gpio_pull_up(SW2_PIN);
-    gpio_pull_up(SW3_PIN);
+    //Drivers
+    driver_timer_init();
+    driver_buttons_init();
+    driver_encoder_init();
+    driver_HUB75E_init();
+
+    //Interfaces
+    interface_button1_init();
+    interface_button2_init();
+    interface_button3_init();
+    interface_encoder_init();
+
+    //Processes
+    process_button_actions_init();
+    process_encoder_actions_init();
 
     //I2C init
     i2c_init(I2C_PORT, 400 * 1000);
@@ -80,9 +107,9 @@ void init(void)
     uart_init(UART_ID, BAUD_RATE);
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-    uart_puts(UART_ID, " Hello, UART!\n"); //Test string
+    uart_puts(UART_ID, " Hello, UART!\n"); // Test string
 
-    //Alarm callback init
+    // Alarm callback init
     add_alarm_in_ms(2000, alarm_callback, NULL, false);
 
     // Get a free channel, panic() if there are none
@@ -114,17 +141,31 @@ void init(void)
     // The DMA has now copied our text from the transmit buffer (src) to the
     // receive buffer (dst), so we can print it out from there.
     puts(dst);
-
 }
 
 //==============================================================================
 int main()
 //==============================================================================
 {
+    int counter = 0;
     init();
-    character_buffer_to_pixel_buffer(frame_start);
-    pixel_buffer_to_frame_buffer();
-    HUB75_execute();
+    //character_buffer_to_pixel_buffer(frame_menu);
+    //pixel_buffer_to_frame_buffer();
+    while (1)
+    {
+        
+        if (systick_flag)
+        {
+            systick_flag = false;
+            counter++;
+            service_scheduler_run();
+            if(counter >= 5)
+            {
+                driver_HUB75E_run(screenval);
+                counter = 0;
+            }
+        }
+    }
 }
 
 //==============================================================================
@@ -134,4 +175,12 @@ int64_t alarm_callback(alarm_id_t id, void *user_data)
 //==============================================================================
 {
     return 0;
+}
+
+//==============================================================================
+void do_nothing(void)
+//
+// Placeholder for function pointer array, before initialisation.
+//==============================================================================
+{
 }
