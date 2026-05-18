@@ -17,9 +17,12 @@
 #include "main.h"
 #include "hub75.pio.h"
 #include "driver_HUB75E.h"
+#include "service_scheduler.h"
 #include "frame_assembly.h"
-#include "mountains_128x64_rgb565.h"
-#include "color_matrix.h"
+
+//Images
+//#include "mountains_128x64_rgb565.h"
+//#include "color_matrix.h"
 // #include "smpte.h"
 // #include "test_corners.h"
 // #include "image3.h"
@@ -46,6 +49,8 @@ void driver_HUB75E_init(void)
 
     hub75_data_rgb888_program_init(driver_HUB75E.pio, driver_HUB75E.sm_data, driver_HUB75E.data_prog_offs, DATA_BASE_PIN, CLK_PIN);
     hub75_row_program_init(driver_HUB75E.pio, driver_HUB75E.sm_row, driver_HUB75E.row_prog_offs, ROWSEL_BASE_PIN, ROWSEL_N_PINS, STROBE_PIN);
+
+    scheduler_phase_array[PHASE_DRIVER_HUB75E_OUT] = do_nothing;
 }
 
 //==============================================================================
@@ -62,20 +67,13 @@ static inline uint32_t gamma_correct_565_888(uint16_t pix)
 }
 
 //==============================================================================
-void driver_HUB75E_run(int temp)
+void driver_HUB75E_run(void)
 //==============================================================================
 {
     const uint16_t *img;
-    static uint32_t gc_row[2][WIDTH];
-    if(temp == 0)
-    {
-        img = (const uint16_t *)frame_buffer_1;
-    }
-    else
-    {
-        img = (const uint16_t *)mountains_128x64;
-    }
-    
+    static uint32_t gc_row[2][WIDTH]; 
+
+    img = (const uint16_t *)frame_buffer_1;
 
     for (int rowsel = 0; rowsel < (1 << ROWSEL_N_PINS); rowsel++)
     {

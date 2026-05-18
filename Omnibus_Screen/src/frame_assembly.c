@@ -15,79 +15,32 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "font_5x7.h"
+#include "data_font_5x7.h"
 #include "frame_assembly.h"
+#include "service_scheduler.h"
+#include "data_UI.h"
+
+#include <stdio.h>
+#include <string.h>
 
 /* Defines -------------------------------------------------------------------*/
 #define BOX_PIXEL_WIDTH 6
 #define BOX_PIXEL_HEIGHT 8
 #define CHARACT_ARRAY_ROWS 8
 #define CHARACT_ARRAY_COLUMNS 21
+#define CURSOR_LENGTH 4
+#define CURSOR_START_COLUMN (CHARACT_ARRAY_COLUMNS - CURSOR_LENGTH)
 #define PIXEL_BUFFER_ROWS 64
 #define PIXEL_BUFFER_COLUMNS 128
 
 #define MARGIN 1
 
 /* Variables ---------------------------------------------------------------- */
-uint8_t frame_start[8][21] = {
-    {"                     "},
-    {"       OMNIBUS       "},
-    {"                     "},
-    {"   Informations de   "},
-    {"       transit       "},
-    {"                     "},
-    {"     ver. 1.0.0      "},
-    {"                     "}};
+bool render_flag;
 
-uint8_t frame_menu[8][21] = {
-    {"12:17:03 <> OO |<oo &"},
-    {"                     "},
-    {"MENU                 "},
-    {"  ARRETS ACTIFS    <<"},
-    {"  MODE D'AFFICHAGE   "},
-    {"  CONNEXION WIFI     "},
-    {"  SYNCHRONISATION    "},
-    {"  FORMAT D'HEURE     "}};
-
-uint8_t frame_test0[8][21] = {
-    {"                     "},
-    {"                     "},
-    {"                     "},
-    {"          0          "},
-    {"                     "},
-    {"                     "},
-    {"                     "},
-    {"                     "}};
-
-uint8_t frame_test1[8][21] = {
-    {"                     "},
-    {"                     "},
-    {"                     "},
-    {"          1          "},
-    {"                     "},
-    {"                     "},
-    {"                     "},
-    {"                     "}};
-
-uint8_t frame_test2[8][21] = {
-    {"                     "},
-    {"                     "},
-    {"                     "},
-    {"          2          "},
-    {"                     "},
-    {"                     "},
-    {"                     "},
-    {"                     "}};
-
-uint8_t frame_test3[8][21] = {
-    {"                     "},
-    {"                     "},
-    {"                     "},
-    {"          3          "},
-    {"                     "},
-    {"                     "},
-    {"                     "},
-    {"                     "}};
+uint8_t local_frame[CHARACT_ARRAY_ROWS][CHARACT_ARRAY_COLUMNS + 1]; //for null-terminator
+uint8_t cursor[CURSOR_LENGTH] = {". <<"};
+uint8_t text_under_cursor[CURSOR_LENGTH];
 
 bool pixel_buffer_1[PIXEL_BUFFER_ROWS][PIXEL_BUFFER_COLUMNS];
 bool pixel_buffer_2[PIXEL_BUFFER_ROWS][PIXEL_BUFFER_COLUMNS];
@@ -96,16 +49,82 @@ uint16_t __attribute__((aligned(4))) frame_buffer_1[8192];
 uint16_t __attribute__((aligned(4))) frame_buffer_2[8192];
 /* Fonctions -----------------------------------------------------------------*/
 
+void frame_assembly_init(void)
+{
+    render_flag = true;
+    character_array_copy(boot_screen.screen_text); //Temporary
+    scheduler_phase_array[PHASE_PROCESS_FRAME_ASSEMBLY] = character_buffer_to_pixel_buffer;
+}
+
 //==============================================================================
-void character_buffer_to_pixel_buffer(const uint8_t character_buf[8][21])
+void character_array_copy(const uint8_t character_buf[8][22])
 //
 //==============================================================================
 {
+    memcpy(local_frame, character_buf, sizeof(uint8_t)* 176);
+}
+
+
+//==============================================================================
+void write_character_to_array(uint8_t character, uint8_t row, uint8_t column)
+//
+//==============================================================================
+{
+    local_frame[row][column] = character;
+}
+
+//==============================================================================
+void write_string_to_array(uint8_t str[], uint8_t row, uint8_t column, uint8_t length)
+//
+//==============================================================================
+{
+    if(column + length > CHARACT_ARRAY_COLUMNS)
+    {
+        length = CHARACT_ARRAY_COLUMNS - column;
+    }
+    for(unsigned char i = 0; i < length; i++)
+    {
+        local_frame[row][column + i] = str[i];
+    }
+}
+
+//==============================================================================
+void draw_cursor(uint8_t row)
+//
+//==============================================================================
+{
+    for(unsigned char i = 0; i < CURSOR_LENGTH; i++)
+    {
+        text_under_cursor[i] = local_frame[row][CURSOR_START_COLUMN + i];
+    }
+    write_string_to_array(cursor, row, CURSOR_START_COLUMN, CURSOR_LENGTH);
+}
+
+//==============================================================================
+void restore_under_cursor(uint8_t row)
+//
+//==============================================================================
+{
+    write_string_to_array(text_under_cursor, row, CURSOR_START_COLUMN, CURSOR_LENGTH);
+}
+
+
+//==============================================================================
+//void character_buffer_to_pixel_buffer(const uint8_t character_buf[8][22])
+void character_buffer_to_pixel_buffer(void)
+//
+//==============================================================================
+{
+    if(render_flag == false)
+    {
+        return;
+    }
+
     for (unsigned char charact_row = 0; charact_row < CHARACT_ARRAY_ROWS; charact_row++)
     {
         for (unsigned char charact_column = 0; charact_column < CHARACT_ARRAY_COLUMNS; charact_column++)
         {
-            uint8_t caract = character_buf[charact_row][charact_column];
+            uint8_t caract = local_frame[charact_row][charact_column];
             const uint8_t *glyph = get_glyph(caract);
 
             for (unsigned char glyph_row = 0; glyph_row < BOX_PIXEL_HEIGHT; glyph_row++)
@@ -120,6 +139,7 @@ void character_buffer_to_pixel_buffer(const uint8_t character_buf[8][21])
             }
         }
     }
+    pixel_buffer_to_frame_buffer();
 }
 
 //==============================================================================
@@ -133,7 +153,7 @@ void pixel_buffer_to_frame_buffer(void)
         {
             if (pixel_buffer_1[pixel_row][pixel_column] == 1)
             {
-                frame_buffer_1[((pixel_row * 128) + pixel_column)] = 0xFFFF;
+                frame_buffer_1[((pixel_row * 128) + pixel_column)] = 0xC426;
             }
             else
             {

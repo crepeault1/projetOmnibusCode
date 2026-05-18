@@ -36,7 +36,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "font_5x7.h"
+#include "data_font_5x7.h"
 #include "frame_assembly.h"
 
 //Services
@@ -55,6 +55,7 @@
 //Processes
 #include "process_button_actions.h"
 #include "process_rotary_encoder_actions.h"
+#include "process_UI.h"
 
 /* Defines -------------------------------------------------------------------*/
 
@@ -95,6 +96,8 @@ void init(void)
     //Processes
     process_button_actions_init();
     process_encoder_actions_init();
+    process_UI_init();
+    frame_assembly_init();
 
     //I2C init
     i2c_init(I2C_PORT, 400 * 1000);
@@ -141,6 +144,8 @@ void init(void)
     // The DMA has now copied our text from the transmit buffer (src) to the
     // receive buffer (dst), so we can print it out from there.
     puts(dst);
+
+    
 }
 
 //==============================================================================
@@ -153,17 +158,11 @@ int main()
     //pixel_buffer_to_frame_buffer();
     while (1)
     {
-        
         if (systick_flag)
         {
             systick_flag = false;
-            counter++;
             service_scheduler_run();
-            if(counter >= 5)
-            {
-                driver_HUB75E_run(screenval);
-                counter = 0;
-            }
+            driver_HUB75E_run();
         }
     }
 }

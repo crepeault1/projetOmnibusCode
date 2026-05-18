@@ -55,6 +55,6 @@ extern DRIVERHUB75E driver_HUB75E;
 /* Functions -----------------------------------------------------------------*/
 void driver_HUB75E_init(void);
 static inline uint32_t gamma_correct_565_888(uint16_t pix);
-void driver_HUB75E_run(int);
+void driver_HUB75E_run(void);
 
 #endif

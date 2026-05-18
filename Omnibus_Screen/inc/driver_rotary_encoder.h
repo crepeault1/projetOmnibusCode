@@ -22,8 +22,8 @@
 /* Variables ---------------------------------------------------------------- */
 typedef struct
 {
-  unsigned long count;
-  unsigned char information;
+  volatile unsigned long count;
+  volatile unsigned char information;
 } DRIVER_ENCODER;
 
 extern DRIVER_ENCODER driver_encoder;

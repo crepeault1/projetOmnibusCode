@@ -38,7 +38,7 @@ pico_sdk_init()
 add_executable(Omnibus_Screen src/Omnibus_Screen.c
                src/driver_HUB75E.c
                src/frame_assembly.c
-               src/font_5x7.c
+               src/data_font_5x7.c
                src/driver_timer.c
                src/driver_buttons.c
                src/driver_rotary_encoder.c
@@ -47,7 +47,11 @@ add_executable(Omnibus_Screen src/Omnibus_Screen.c
                src/interface_rotary_encoder.c
                src/process_button_actions.c
                src/process_rotary_encoder_actions.c
+               src/process_UI.c
+               src/data_UI.c
 )
+
+target_compile_options(Omnibus_Screen PRIVATE -Wall -Wextra -Wpedantic)
 
 pico_set_program_name(Omnibus_Screen "Omnibus_Screen")
 pico_set_program_version(Omnibus_Screen "0.1")
