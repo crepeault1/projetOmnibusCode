@@ -16,12 +16,12 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "font_5x7.h"
+#include "data_font_5x7.h"
 
 /* Defines -------------------------------------------------------------------*/
 
 /* Variables ---------------------------------------------------------------- */
-const uint8_t byte_to_glyph[256] = {
+const uint8_t byte_to_glyph_LUT[256] = {
     //Display error
     [0] = GLYPH_MISSING,
     
@@ -244,6 +244,6 @@ const uint8_t glyph_5x7[FONT_5X7_NUM_GLYPHS][FONT_5X7_GLYPH_BYTES] = {
 
 const uint8_t* get_glyph(uint8_t input_character)
 {
-    uint8_t index = byte_to_glyph[input_character];
+    uint8_t index = byte_to_glyph_LUT[input_character];
     return glyph_5x7[index];
 }
