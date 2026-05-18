@@ -1,16 +1,16 @@
 /**
-  ******************************************************************************
-  * @file           : Processus_Boutons.c
-  * @brief          : Gestion des actions des boutons
-  * @author         : Samuel Crépeault
-  * 
-  ******************************************************************************
-  * @details
-  * 
-  * 
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : Processus_Boutons.c
+ * @brief          : Gestion des actions des boutons
+ * @author         : Samuel Crépeault
+ *
+ ******************************************************************************
+ * @details
+ *
+ *
+ *
+ ******************************************************************************
+ */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -31,6 +31,14 @@ void process_button_actions_init(void)
 //=============================================================================
 {
   scheduler_phase_array[PHASE_PROCESS_BUTTONS] = process_button_actions_run;
+  
+  process_button_actions.button1_press_callback = do_nothing;
+  process_button_actions.button2_press_callback = do_nothing;
+  process_button_actions.button3_press_callback = do_nothing;
+
+  process_button_actions.button1_release_callback = do_nothing;
+  process_button_actions.button2_release_callback = do_nothing;
+  process_button_actions.button3_release_callback = do_nothing;
 }
 
 //=============================================================================
@@ -41,33 +49,39 @@ void process_button_actions_run(void)
   if (interface_button1.information == INFORMATION_AVAILABLE)
   {
     interface_button1.information = INFORMATION_HANDLED;
-    if (interface_button1.button_state == INTERFACEBUTTON_VALUE_IF_PRESSED)
+    if (interface_button1.button_state == INTERFACEBUTTON_HELD)
     {
+      process_button_actions.button1_press_callback();
     }
     else
     {
+      process_button_actions.button1_release_callback();
     }
   }
-  
+
   if (interface_button2.information == INFORMATION_AVAILABLE)
   {
     interface_button2.information = INFORMATION_HANDLED;
-    if (interface_button2.button_state == INTERFACEBUTTON_VALUE_IF_PRESSED)
+    if (interface_button2.button_state == INTERFACEBUTTON_HELD)
     {
+      process_button_actions.button2_press_callback();
     }
     else
     {
+      process_button_actions.button2_release_callback();
     }
   }
 
   if (interface_button3.information == INFORMATION_AVAILABLE)
   {
     interface_button3.information = INFORMATION_HANDLED;
-    if (interface_button3.button_state == INTERFACEBUTTON_VALUE_IF_PRESSED)
+    if (interface_button3.button_state == INTERFACEBUTTON_HELD)
     {
+      process_button_actions.button3_press_callback();
     }
     else
     {
+      process_button_actions.button3_release_callback();
     }
   }
 }

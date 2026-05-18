@@ -167,7 +167,7 @@ void interface_button3_run(void)
     interface_button3.information = INFORMATION_AVAILABLE;
     return;
   }
-  if (interface_button1.debounce_counter == 0)
+  if (interface_button3.debounce_counter == 0)
   {
     return; 
   }

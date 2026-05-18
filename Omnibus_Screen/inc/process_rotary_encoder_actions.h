@@ -23,6 +23,10 @@ typedef struct
   uint8_t information;
   uint8_t request;
   uint8_t statut;
+  void (*encoder_clockwise_callback) (void);
+  void (*encoder_counterclockwise_callback) (void);
+  void (*encoder_button_press_callback) (void);
+  void (*encoder_button_release_callback) (void);
 } PROCESS_ENCODER_ACTIONS;
 
 extern PROCESS_ENCODER_ACTIONS process_encoder_actions;
