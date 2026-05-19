@@ -144,8 +144,9 @@ PROCESS_UI_SCREEN error_screen = {
         {"     to be here.     "},
         {"                     "},
         {"                     "},
-        {"                     "}}
+        {"                     "}},
     };
+    
  
 PROCESS_UI_SCREEN boot_screen = {
     .index = 10,
@@ -168,7 +169,7 @@ PROCESS_UI_SCREEN boot_screen = {
         {"       transit       "},
         {"                     "},
         {"     ver. 1.0.0      "},
-        {"   Samuel Cr\xE9peault  "}}
+        {"   Samuel Cr\xE9peault  "}},
     };
  
 PROCESS_UI_SCREEN tooltip_screen = {
@@ -358,9 +359,17 @@ PROCESS_UI_SCREEN by_line_1_screen = {
         {"Entrez un num\xE9ro de  "},
         {"ligne.               "},
         {"  \xA9  \xA9  \xA9            "},
-        {" [#][#][#]  Valider  "},
+        {" [0][0][0]  Valider  "},
         {"  \xAE  \xAE  \xAE            "},
-        {"                     "}}
+        {"                     "}},
+
+    .accent_regions = {
+        {{1,5}, {3,5}},
+        {{4,5}, {6,5}},
+        {{7,5}, {9,5}},
+        {{12,5}, {19,5}},
+        {{0,0}, {0,0}},
+    }    
     };
  
 PROCESS_UI_SCREEN by_line_2_screen = {
@@ -430,9 +439,17 @@ PROCESS_UI_SCREEN by_stop_1_screen = {
         {"Entrez un num\xE9ro     "},
         {"d'arr\xEAt.             "},
         {"  \xA9  \xA9  \xA9  \xA9         "},
-        {" [#][#][#][#] Valider"},
+        {" [0][0][0][0] Valider"},
         {"  \xAE  \xAE  \xAE  \xAE         "},
-        {"                     "}}
+        {"                     "}},
+
+    .accent_regions = {
+        {{1,5}, {3,5}},
+        {{4,5}, {6,5}},
+        {{7,5}, {9,5}},
+        {{10,5}, {12,5}},
+        {{14,5}, {21,5}},
+    }    
     };
  
 PROCESS_UI_SCREEN by_stop_2_screen = {
@@ -576,7 +593,15 @@ PROCESS_UI_SCREEN time_activate_24_1_screen = {
         {" \xA9    \xA9              "},
         {"[##]:[##]     Valider"},
         {" \xAE    \xAE              "},
-        {"                     "}}
+        {"                     "}},
+
+    .accent_regions = {
+        {{0,5}, {3,5}},
+        {{5,5}, {6,5}},
+        {{14,5}, {21,5}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+    }    
     };
  
 PROCESS_UI_SCREEN time_activate_24_2_screen = {
@@ -600,7 +625,15 @@ PROCESS_UI_SCREEN time_activate_24_2_screen = {
         {" \xA9    \xA9              "},
         {"[##]:[##]     Valider"},
         {" \xAE    \xAE              "},
-        {"                     "}}
+        {"                     "}},
+
+    .accent_regions = {
+        {{0,5}, {3,5}},
+        {{5,5}, {6,5}},
+        {{14,5}, {21,5}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+    }    
     };
  
 PROCESS_UI_SCREEN time_activate_12_1_screen = {
@@ -613,7 +646,7 @@ PROCESS_UI_SCREEN time_activate_12_1_screen = {
     .behavior = UI_BEHAVIOR_NUMERIC_ENTRY,
     .select_button_action = 0,
     .max_select_actions = 0,
-    .num_digits = 2,
+    .num_digits = 3,
     .menu_button_actions = 0,
     
     .screen_text = {
@@ -624,7 +657,15 @@ PROCESS_UI_SCREEN time_activate_12_1_screen = {
         {" \xA9    \xA9   \xA9          "},
         {"[##]:[##][AM] Valider"},
         {" \xAE    \xAE   \xAE          "},
-        {"                     "}}
+        {"                     "}},
+
+    .accent_regions = {
+        {{0,5}, {3,5}},
+        {{5,5}, {6,5}},
+        {{7,5}, {10,5}},
+        {{14,5}, {21,5}},
+        {{0,0}, {0,0}},
+    }    
     };
  
 PROCESS_UI_SCREEN time_activate_12_2_screen = {
@@ -648,7 +689,15 @@ PROCESS_UI_SCREEN time_activate_12_2_screen = {
         {" \xA9    \xA9              "},
         {"[##]:[##][AM] Valider"},
         {" \xAE    \xAE              "},
-        {"                     "}}
+        {"                     "}},
+
+    .accent_regions = {
+        {{0,5}, {3,5}},
+        {{5,5}, {6,5}},
+        {{7,5}, {10,5}},
+        {{14,5}, {21,5}},
+        {{0,0}, {0,0}},
+    }    
     };
  
 PROCESS_UI_SCREEN wake_duration_screen = {
@@ -672,7 +721,15 @@ PROCESS_UI_SCREEN wake_duration_screen = {
         {" \xA9                   "},
         {"[##] min.     Valider"},
         {" \xAE                   "},
-        {"                     "}}
+        {"                     "}},
+
+    .accent_regions = {
+        {{0,5}, {3,5}},
+        {{14,5}, {21,5}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+    }    
     };
  
 PROCESS_UI_SCREEN changes_saved_screen = {
@@ -740,11 +797,11 @@ PROCESS_UI_SCREEN wifi_manual_1_screen = {
         {"                     "},
         {"                     "},
         {"R\xE9seaux disponibles: "},
-        {"         ^           "},
+        {"         \xA9           "},
         {"  ***************    "},
         {"  ***************  <<"},
         {"  ***************    "},
-        {"         v           "}}
+        {"         \xAE           "}}
     };
  
 PROCESS_UI_SCREEN wifi_manual_2_screen = {
@@ -767,7 +824,7 @@ PROCESS_UI_SCREEN wifi_manual_2_screen = {
         {"                     "},
         {"  _________________  "},
         {"                     "},
-        {"         v           "},
+        {"         \xAE           "},
         {"< OK aAbBcCdDeEfFgG >"}}
     };
  

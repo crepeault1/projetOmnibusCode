@@ -42,8 +42,7 @@ uint8_t cursor_position;
 
 uint8_t selected_digit[4];
 uint8_t digit_counter;
-
-
+uint8_t selected_accent_region[4];
 
 /* Functions -----------------------------------------------------------------*/
 
@@ -122,13 +121,15 @@ void process_UI_run(void)
             break;
 
         case UI_BEHAVIOR_NUMERIC_ENTRY:
+
+            load_accent_region(digit_counter);
             // Multiple button presses before re-rendering
             process_button_actions.button1_press_callback = process_UI_next_digit;
             process_button_actions.button2_press_callback = process_UI_render_previous;
 
             // Encoder changes the cursor position
-            process_encoder_actions.encoder_clockwise_callback = process_UI_digit_down;
-            process_encoder_actions.encoder_counterclockwise_callback = process_UI_digit_up;
+            process_encoder_actions.encoder_clockwise_callback = process_UI_digit_up;
+            process_encoder_actions.encoder_counterclockwise_callback = process_UI_digit_down;
             process_encoder_actions.encoder_button_press_callback = do_nothing;
             break;
 
@@ -140,7 +141,7 @@ void process_UI_run(void)
 
         case UI_BEHAVIOR_CUSTOM:
             process_button_actions.button1_press_callback = process_UI_render_next;
-            process_button_actions.button2_press_callback = process_UI_render_previous;        
+            process_button_actions.button2_press_callback = process_UI_render_previous;
             break;
         }
     }
@@ -152,7 +153,7 @@ void process_UI_render_next(void)
 //==============================================================================
 {
     uint8_t next_screen_index;
-    if(current_screen_data->next_screen_count > 1 && current_screen_data->cursor_count > 1)
+    if (current_screen_data->next_screen_count > 1 && current_screen_data->cursor_count > 1)
     {
         next_screen_index = cursor_position;
     }
@@ -160,15 +161,16 @@ void process_UI_render_next(void)
     {
         next_screen_index = 0;
     }
-    
+
     next_screen_data = data_UI_get_screen_data(current_screen_data->next_screen[next_screen_index]);
 
-    character_array_copy(next_screen_data->screen_text);
+    character_array_copy(next_screen_data->screen_text, selected_accent_region);
 
     current_screen_data = next_screen_data;
     progress_counter = 0;
     cursor_position = 0;
     digit_counter = 0;
+    selected_accent_region[0] = 0;
     update_necessary = true;
 }
 
@@ -179,15 +181,15 @@ void process_UI_render_previous(void)
 {
     previous_screen_data = data_UI_get_screen_data(current_screen_data->previous_screen);
 
-    character_array_copy(previous_screen_data->screen_text);
+    character_array_copy(previous_screen_data->screen_text, selected_accent_region);
 
     current_screen_data = previous_screen_data;
     progress_counter = 0;
     cursor_position = 0;
     digit_counter = 0;
+    selected_accent_region[0] = 0;
     update_necessary = true;
 }
-
 
 //==============================================================================
 void process_UI_cursor_up(void)
@@ -214,7 +216,6 @@ void process_UI_scroll_up(void)
 //
 //==============================================================================
 {
-
 }
 
 //==============================================================================
@@ -222,26 +223,25 @@ void process_UI_scroll_down(void)
 //
 //==============================================================================
 {
-
 }
-
-
-
 
 //==============================================================================
 void process_UI_next_digit(void)
 //
 //==============================================================================
 {
-    if(digit_counter >= (current_screen_data->num_digits - 1))
+    if (digit_counter >= (current_screen_data->num_digits - 1))
     {
         process_button_actions.button1_press_callback = process_UI_render_next;
+        process_encoder_actions.encoder_clockwise_callback = do_nothing;
+        process_encoder_actions.encoder_counterclockwise_callback = do_nothing;
     }
     else
     {
-        digit_counter++;
         process_button_actions.button2_press_callback = process_UI_previous_digit;
     }
+    digit_counter++;
+    load_accent_region(digit_counter);
 }
 
 //==============================================================================
@@ -249,15 +249,24 @@ void process_UI_previous_digit(void)
 //
 //==============================================================================
 {
-    if(digit_counter <= 0)
+    digit_counter--;
+    load_accent_region(digit_counter);
+
+    if (digit_counter <= (current_screen_data->num_digits))
     {
-        digit_counter = 0;
+        selected_digit[digit_counter] = 0;
+    }
+
+    if (digit_counter <= 0)
+    {
         process_button_actions.button2_press_callback = process_UI_render_previous;
     }
-    selected_digit[digit_counter] = 0;
-    write_character_to_array((selected_digit[digit_counter] + 0x30), 5, 2 + 3*digit_counter);
-    digit_counter--;
-    
+    else
+    {
+        process_button_actions.button1_press_callback = process_UI_next_digit;
+        process_encoder_actions.encoder_clockwise_callback = process_UI_digit_up;
+        process_encoder_actions.encoder_counterclockwise_callback = process_UI_digit_down;
+    }
 }
 
 //==============================================================================
@@ -267,7 +276,7 @@ void process_UI_digit_up(void)
 {
     selected_digit[digit_counter]++;
     selected_digit[digit_counter] %= 10;
-    write_character_to_array((selected_digit[digit_counter] + 0x30), 5, 2 + 3*digit_counter);
+    write_character_to_array((selected_digit[digit_counter] + 0x30), 5, 2 + 3 * digit_counter);
 }
 
 //==============================================================================
@@ -275,7 +284,7 @@ void process_UI_digit_down(void)
 //
 //==============================================================================
 {
-    if(selected_digit[digit_counter] == 0)
+    if (selected_digit[digit_counter] == 0)
     {
         selected_digit[digit_counter] = 9;
     }
@@ -283,5 +292,17 @@ void process_UI_digit_down(void)
     {
         selected_digit[digit_counter]--;
     }
-    write_character_to_array((selected_digit[digit_counter] + 0x30), 5, 2 + 3*digit_counter);
+    write_character_to_array((selected_digit[digit_counter] + 0x30), 5, 2 + 3 * digit_counter);
+}
+
+//==============================================================================
+void load_accent_region(uint8_t region)
+//
+//==============================================================================
+{
+    selected_accent_region[0] = current_screen_data->accent_regions[region][0][0];
+    selected_accent_region[1] = current_screen_data->accent_regions[region][0][1];
+    selected_accent_region[2] = current_screen_data->accent_regions[region][1][0];
+    selected_accent_region[3] = current_screen_data->accent_regions[region][1][1];
+    accent_region_copy(selected_accent_region);
 }

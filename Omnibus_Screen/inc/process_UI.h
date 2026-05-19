@@ -42,7 +42,5 @@ void process_UI_previous_digit(void);
 void process_UI_digit_up(void);
 void process_UI_digit_down(void);
 
-//DEBUG
-void process_UI_button_tester1(void);
-void process_UI_button_tester2(void);
+void load_accent_region(uint8_t region);
 #endif

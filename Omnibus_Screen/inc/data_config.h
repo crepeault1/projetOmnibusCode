@@ -43,7 +43,7 @@ typedef struct
 
     E_DATA_CONFIG_DISPLAY_MODE desired_display_mode;
     E_DATA_CONFIG_TIME_FORMAT desired_time_format;
-} DATA_USER_SETUP;
+} DATA_CONFIG_USER_SETUP;
 /* Prototypes ----------------------------------------------------------------*/
 
 #endif

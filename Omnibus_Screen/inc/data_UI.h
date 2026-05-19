@@ -48,6 +48,7 @@ typedef struct
 
   //What a screen holds
   const uint8_t screen_text[8][22]; // Display text
+  const uint8_t accent_regions[5][2][2];
 } PROCESS_UI_SCREEN;
 
 extern PROCESS_UI_SCREEN error_screen; // 0
