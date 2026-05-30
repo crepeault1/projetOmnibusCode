@@ -445,7 +445,7 @@ static void ui_def_num_encoder(PROCESS_UI_MASTER_STATE *st, int8_t delta)
 
 static void ui_def_scroll_encoder(PROCESS_UI_MASTER_STATE *st, int8_t delta)
 {
-    st->scroll_limit = data_config_bus_data_dummy.number_of_lines; //bad fix: updates the max scroll every scroll!
+    st->scroll_limit = data_config_bus_data_dummy.number_of_lines; // bad fix: updates the max scroll every scroll!
     uint8_t loop_value = st->scroll_limit;
     int8_t scroll = (st->scroll_offset + delta);
 
@@ -462,7 +462,7 @@ static void ui_def_scroll_encoder(PROCESS_UI_MASTER_STATE *st, int8_t delta)
 
     for (unsigned char i = 0; i < SCROLL_VISIBLE; i++)
     {
-        switch (st->current->index) // Screen indexes, 46 is stop number and name, 48 is just line number 
+        switch (st->current->index) // Screen indexes, 46 is stop number and name, 48 is just line number
         {
         case 46:
             write_number_to_array(data_config_bus_data_dummy.timetable_stop_list[(scroll + i) % loop_value], i + 4, 0, 4);
@@ -521,7 +521,7 @@ bool exit_44(PROCESS_UI_MASTER_STATE *st)
 
     data_config_user_setup.selected_line = st->selected_digit[0] * 100 + st->selected_digit[1] * 10 + st->selected_digit[2];
 
-    //Bus data cleanup
+    // Bus data cleanup
     data_config_bus_data_dummy.direction_counter = 0;
     memset(data_config_bus_data_dummy.directions[0], ' ', 18);
     memset(data_config_bus_data_dummy.directions[1], ' ', 18);
@@ -547,7 +547,7 @@ bool arrival_45(PROCESS_UI_MASTER_STATE *st)
 bool exit_45(PROCESS_UI_MASTER_STATE *st)
 {
     data_config_user_setup.selected_direction = st->cursor_position;
-    process_communication_outbound_code = SET_DIRECTION;
+    process_communication_outbound_code = GET_STOPS;
     return EXIT_CLEAR;
 }
 
@@ -565,6 +565,10 @@ bool arrival_46(PROCESS_UI_MASTER_STATE *st)
     }
 
     return EXIT_CLEAR;
+}
+
+bool tick_46(PROCESS_UI_MASTER_STATE *st)
+{
 }
 
 bool exit_46(PROCESS_UI_MASTER_STATE *st)
@@ -594,7 +598,7 @@ bool exit_47(PROCESS_UI_MASTER_STATE *st)
     data_config_user_setup.selected_stop = stop_ID;
     st->entered_stop_id = stop_ID;
 
-    //bus data cleanup
+    // bus data cleanup
     data_config_bus_data_dummy.line_counter = 0;
     memset(data_config_bus_data_dummy.line_list, 0, 300);
 

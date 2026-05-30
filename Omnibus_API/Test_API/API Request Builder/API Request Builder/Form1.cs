@@ -94,6 +94,7 @@ namespace API_Request_Builder
         int incoming_stop_or_line_int;
         string incoming_stop_or_line_str;
         string saved_stop_or_line_str;
+        int saved_direction;
         public struct Frame
         {
             public string header;
@@ -773,7 +774,7 @@ namespace API_Request_Builder
                     nextURL = null;
                 }
             }
-
+            route.directionsOnThisRoute.Sort((a, b) => a.directionId.CompareTo(b.directionId));
             route.directionsLoaded = true;
             labelStatus.Text = "Directions loaded";
         }
@@ -1091,31 +1092,40 @@ namespace API_Request_Builder
                 Thread.Sleep(10);
             }
         }
-
-        private void handle_userDirection(string choice)
-        {
-            int choice_int = int.Parse(choice);
-            var direction = routesDict["1-" + saved_stop_or_line_str].directionsOnThisRoute.FirstOrDefault(d => d.directionId == choice_int);
-            if (choice.Contains('0'))
-            {
-                foreach(Stop stop in direction.stopsInThisDirection)
-                {
-
-                }
-            }
-            else if(choice.Contains('1'))
-            {
-
-            }
-        }
         private void button_NbrStops_Click(object sender, EventArgs e)
         {
 
         }
 
+        private void handle_NbrStops(string stops_direction)
+        {
+            string stop = stops_direction.Substring(0, 3);
+            string direction_index = stops_direction.Substring(3, 1);
+            saved_direction = int.Parse(direction_index);
+            int choice_int = int.Parse(direction_index);
+
+            var direction = routesDict["1-" + saved_stop_or_line_str].directionsOnThisRoute[choice_int];
+
+            string message = "(" + STOP_NUMBER_PREFIX + "_" + (direction.stopsInThisDirection.Count).ToString() + ")";
+            int length = message.Length;
+            send_frame(message, length, true);
+        }
+
         private void button_StopID_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void handle_StopID()
+        {
+            var direction = routesDict["1-" + saved_stop_or_line_str].directionsOnThisRoute[saved_direction];
+            foreach (Stop stop in direction.stopsInThisDirection)
+            {
+                string message = "(" + LINE_IDENTIFIER_PREFIX + "_" + stop.stopID + "_" + stop.stopName + ")";
+                int length = message.Length;
+                send_frame(message, length, true);
+                Thread.Sleep(10);
+            }
         }
 
         private void button_TimeRemaining_Click(object sender, EventArgs e)
@@ -1179,12 +1189,11 @@ namespace API_Request_Builder
                     case GET_DIRECTIONS:
                         handle_directions(incoming_stop_or_line_str);
                         break;
-                    case SET_DIRECTION:
-                        handle_userDirection(incoming_stop_or_line_str);
-                        break;
                     case GET_STOPS:
+                        handle_NbrStops(incoming_stop_or_line_str);
                         break;
                     case ACK_STOP_QUANTITY:
+                        handle_StopID();
                         break;
 
 

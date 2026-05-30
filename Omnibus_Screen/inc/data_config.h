@@ -64,6 +64,7 @@ typedef struct
     uint8_t  number_of_stops;
     uint16_t timetable_stop_list[100];
     uint8_t  timetable_stop_names[100][12];
+    uint8_t stop_counter;
     uint16_t  line_list[150];
     uint8_t line_counter;
     uint8_t  directions[2][18];

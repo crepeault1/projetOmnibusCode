@@ -86,6 +86,7 @@ bool arrival_45(PROCESS_UI_MASTER_STATE *st);
 bool exit_45(PROCESS_UI_MASTER_STATE *st);
 
 bool arrival_46(PROCESS_UI_MASTER_STATE *st);
+bool tick_46(PROCESS_UI_MASTER_STATE *st);
 bool exit_46(PROCESS_UI_MASTER_STATE *st);
 
 bool arrival_47(PROCESS_UI_MASTER_STATE *st);

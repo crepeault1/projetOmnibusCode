@@ -468,6 +468,7 @@ PROCESS_UI_SCREEN by_line_3_screen = {
     .scroll_amount = 0,
     .screen_on_arrival = arrival_46,
     .screen_on_exit = exit_46,
+    .screen_on_tick = tick_46,
     
     .screen_text = {
         {"                     "},

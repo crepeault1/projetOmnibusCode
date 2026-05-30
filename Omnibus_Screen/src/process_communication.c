@@ -99,7 +99,11 @@ void process_communication_read(void)
 
 //==============================================================================
 void process_communication_write(void)
-//
+//#: stop number
+//&: line number
+//*: generic number
+//É: generic character
+//+: padding character
 //==============================================================================
 {
   int number = 15;
@@ -110,63 +114,58 @@ void process_communication_write(void)
   case NOTHING_TO_DO:
     return;
 
-  case CHECK_STOP:
+  case CHECK_STOP:  //(SCHK_####)
     memcpy(&outbound_frame, check_stop_str, PREFIX_LEN); // Copy prefix
     snprintf(line_stop_buffer, 6, "%04d", data_config_user_setup.selected_stop);
     memcpy(&outbound_frame[6], line_stop_buffer, 4);  // Copy string into frame
     memcpy(&outbound_frame[10], end_of_frame_str, 1); // Copy end-of-frame charact.
     break;
 
-  case CHECK_LINE:
+  case CHECK_LINE:  //(LCHK_&&&)
     memcpy(&outbound_frame, check_line_str, PREFIX_LEN);
     snprintf(line_stop_buffer, 6, "%03d", data_config_user_setup.selected_line);
     memcpy(&outbound_frame[6], line_stop_buffer, 3);
     memcpy(&outbound_frame[9], end_of_frame_str, 1);
     break;
 
-  case GET_LINES:
+  case GET_LINES:  //(LGET_####)
     memcpy(&outbound_frame, get_lines_str, PREFIX_LEN);
     snprintf(line_stop_buffer, 6, "%04d", data_config_user_setup.selected_stop);
     memcpy(&outbound_frame[6], line_stop_buffer, 4);
     memcpy(&outbound_frame[10], end_of_frame_str, 1);
     break;
 
-  case ACK_LINE_QUANTITY:
+  case ACK_LINE_QUANTITY:  //(LACK_***)
     memcpy(&outbound_frame, ack_line_quantity_str, PREFIX_LEN);
     snprintf(line_stop_buffer, 6, "%03d", data_config_bus_data_dummy.number_of_lines);
     memcpy(&outbound_frame[6], line_stop_buffer, 3);
     memcpy(&outbound_frame[9], end_of_frame_str, 1);
     break;
 
-  case GET_DIRECTIONS:
+  case GET_DIRECTIONS:  //(DGET_&&&)
     memcpy(&outbound_frame, get_directions_str, PREFIX_LEN);
     snprintf(line_stop_buffer, 6, "%03d", data_config_user_setup.selected_line);
     memcpy(&outbound_frame[6], line_stop_buffer, 3);
     memcpy(&outbound_frame[9], end_of_frame_str, 1);
     break;
 
-  case SET_DIRECTION:
-    memcpy(&outbound_frame, set_direction_str, PREFIX_LEN);
-    snprintf(line_stop_buffer, 6, "%01d", data_config_user_setup.selected_direction);
-    memcpy(&outbound_frame[6], line_stop_buffer, 3);
-    memcpy(&outbound_frame[7], end_of_frame_str, 1);
-    break;
-
-  case GET_STOPS:
+  case GET_STOPS:  //(SGET_&&&*)
     memcpy(&outbound_frame, get_stops_str, PREFIX_LEN);
     snprintf(line_stop_buffer, 6, "%03d", data_config_user_setup.selected_line);
     memcpy(&outbound_frame[6], line_stop_buffer, 3);
-    memcpy(&outbound_frame[9], end_of_frame_str, 1);
+    snprintf(line_stop_buffer, 6, "%01d", data_config_user_setup.selected_direction);
+    memcpy(&outbound_frame[9], line_stop_buffer, 1);
+    memcpy(&outbound_frame[10], end_of_frame_str, 1);
     break;
 
-  case ACK_STOP_QUANTITY:
+  case ACK_STOP_QUANTITY:  //(SACK_***)
     memcpy(&outbound_frame, ack_stop_quantity_str, PREFIX_LEN);
-    itoa(number, line_stop_buffer, 10); // CHANGE
+    snprintf(line_stop_buffer, 6, "%03d", data_config_bus_data_dummy.number_of_stops);
     memcpy(&outbound_frame[6], line_stop_buffer, 3);
     memcpy(&outbound_frame[9], end_of_frame_str, 1);
     break;
 
-  case WAIT_TIMES:
+  case WAIT_TIMES:  //(WAIT_####_&&&)
     memcpy(&outbound_frame, get_times_str, PREFIX_LEN);
     snprintf(line_stop_buffer, 6, "%04d", data_config_user_setup.selected_stop);
     memcpy(&outbound_frame[6], line_stop_buffer, 4);
@@ -240,9 +239,13 @@ void process_communication_interpret_frame(int action)
     data_config_bus_data_dummy.direction_counter++;
     break;
   case ACTION_NUM_STOPS_ON_LINE:
-
+    data_config_bus_data_dummy.number_of_stops = atoi(&incoming_frame[PREFIX_LEN]);
+    process_communication_outbound_code = ACK_STOP_QUANTITY;
     break;
   case ACTION_STOP_ID:
+    data_config_bus_data_dummy.timetable_stop_list[data_config_bus_data_dummy.stop_counter] = atoi(&incoming_frame[PREFIX_LEN]);
+    memcpy(data_config_bus_data_dummy.timetable_stop_names[data_config_bus_data_dummy.stop_counter], &incoming_frame[PREFIX_LEN + 5], 12);
+    data_config_bus_data_dummy.stop_counter++;
     break;
   case ACTION_DONE:
     break;
