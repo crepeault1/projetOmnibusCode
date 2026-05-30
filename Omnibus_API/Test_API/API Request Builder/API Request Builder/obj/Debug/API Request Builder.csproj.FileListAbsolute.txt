@@ -1,0 +1,60 @@
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\API Request Builder.exe.config
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\API Request Builder.exe
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\API Request Builder.pdb
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.csproj.AssemblyReference.cache
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\obj\Debug\API_Request_Builder.Form1.resources
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\obj\Debug\API_Request_Builder.Properties.Resources.resources
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.csproj.GenerateResource.cache
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.csproj.CoreCompileInputs.cache
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.exe
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.pdb
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\Microsoft.Bcl.AsyncInterfaces.dll
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Buffers.dll
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.IO.Pipelines.dll
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Memory.dll
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Numerics.Vectors.dll
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Text.Encodings.Web.dll
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Text.Json.dll
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Threading.Tasks.Extensions.dll
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\Microsoft.Bcl.AsyncInterfaces.xml
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Buffers.xml
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.IO.Pipelines.xml
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Memory.xml
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Numerics.Vectors.xml
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Text.Encodings.Web.xml
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Text.Json.xml
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Threading.Tasks.Extensions.xml
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.exe.config
+U:\S6-H2026 (Projet)\Test_API\API Request Builder\API Request Builder\obj\Debug\API Requ.9D7E882C.Up2Date
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\API Request Builder.exe.config
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\API Request Builder.exe
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\API Request Builder.pdb
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Buffers.dll
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.IO.Pipelines.dll
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Memory.dll
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Numerics.Vectors.dll
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Text.Encodings.Web.dll
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Text.Json.dll
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Threading.Tasks.Extensions.dll
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\Microsoft.Bcl.AsyncInterfaces.xml
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Buffers.xml
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.IO.Pipelines.xml
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Memory.xml
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Numerics.Vectors.xml
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Text.Encodings.Web.xml
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Text.Json.xml
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\bin\Debug\System.Threading.Tasks.Extensions.xml
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.csproj.AssemblyReference.cache
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.exe.config
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\obj\Debug\API_Request_Builder.Form1.resources
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\obj\Debug\API_Request_Builder.Properties.Resources.resources
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.csproj.GenerateResource.cache
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.csproj.CoreCompileInputs.cache
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\obj\Debug\API Requ.9D7E882C.Up2Date
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.exe
+C:\Users\2312455\Documents\Omnibus_Prog\projetOmnibusCode\Omnibus_API\Test_API\API Request Builder\API Request Builder\obj\Debug\API Request Builder.pdb
