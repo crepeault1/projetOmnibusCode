@@ -39,11 +39,17 @@
 #include "data_font_5x7.h"
 #include "frame_assembly.h"
 
+//Data
+#include "data_config.h"
+#include "data_UI_refactored.h"
+
 //Services
 #include "service_scheduler.h"
+#include "service_UART.h"
 
 //Drivers
 #include "driver_buttons.h"
+#include "driver_UART.h"
 #include "driver_rotary_encoder.h"
 #include "driver_timer.h"
 #include "driver_HUB75E.h"
@@ -55,18 +61,16 @@
 //Processes
 #include "process_button_actions.h"
 #include "process_rotary_encoder_actions.h"
-#include "process_UI.h"
+#include "process_UI_refactored.h"
+#include "process_communication.h"
+#include "process_clock.h"
 
 /* Defines -------------------------------------------------------------------*/
-
 #define WIDTH 128
 #define HEIGHT 64
 
 /* Variables ---------------------------------------------------------------- */
-const char src[] = "Hello, world! (from DMA)";
-char dst[count_of(src)];
 int screenval = 0;
-
 
 /* Fonctions -----------------------------------------------------------------*/
 
@@ -78,14 +82,19 @@ void init(void)
 {
     stdio_init_all();
 
+    //Data
+    data_config_init();
+    data_UI_init();
+    
     //Services
     service_scheduler_init();
+    service_UART_init(uart0, UART_TX_PIN, UART_RX_PIN, BAUD_RATE);
 
     //Drivers
     driver_timer_init();
+    driver_HUB75E_init();
     driver_buttons_init();
     driver_encoder_init();
-    driver_HUB75E_init();
 
     //Interfaces
     interface_button1_init();
@@ -98,6 +107,8 @@ void init(void)
     process_encoder_actions_init();
     process_UI_init();
     frame_assembly_init();
+    process_communication_init();
+    process_clock_init();
 
     //I2C init
     i2c_init(I2C_PORT, 400 * 1000);
@@ -105,53 +116,13 @@ void init(void)
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
-
-    //UART init
-    uart_init(UART_ID, BAUD_RATE);
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-    uart_puts(UART_ID, " Hello, UART!\n"); // Test string
-
-    // Alarm callback init
-    add_alarm_in_ms(2000, alarm_callback, NULL, false);
-
-    // Get a free channel, panic() if there are none
-    int chan = dma_claim_unused_channel(true);
-
-    // 8 bit transfers. Both read and write address increment after each
-    // transfer (each pointing to a location in src or dst respectively).
-    // No DREQ is selected, so the DMA transfers as fast as it can.
-
-    dma_channel_config c = dma_channel_get_default_config(chan);
-    channel_config_set_transfer_data_size(&c, DMA_SIZE_8);
-    channel_config_set_read_increment(&c, true);
-    channel_config_set_write_increment(&c, true);
-
-    dma_channel_configure(
-        chan,          // Channel to be configured
-        &c,            // The configuration we just created
-        dst,           // The initial write address
-        src,           // The initial read address
-        count_of(src), // Number of transfers; in this case each is 1 byte.
-        true           // Start immediately.
-    );
-
-    // We could choose to go and do something else whilst the DMA is doing its
-    // thing. In this case the processor has nothing else to do, so we just
-    // wait for the DMA to finish.
-    dma_channel_wait_for_finish_blocking(chan);
-
-    // The DMA has now copied our text from the transmit buffer (src) to the
-    // receive buffer (dst), so we can print it out from there.
-    puts(dst);
-
-    
 }
 
 //==============================================================================
 int main()
 //==============================================================================
 {
+    uint8_t test_frame[24] = {"(SCHK_6453)+++++++++++++"};
     int counter = 0;
     init();
     //character_buffer_to_pixel_buffer(frame_menu);
@@ -163,17 +134,14 @@ int main()
             systick_flag = false;
             service_scheduler_run();
             driver_HUB75E_run();
+            counter++;
+            if(counter > 100) 
+            {
+                counter = 0;
+                //uart_service_write(test_frame, 0);
+            }
         }
     }
-}
-
-//==============================================================================
-int64_t alarm_callback(alarm_id_t id, void *user_data)
-//
-// Put your timeout handler code in here
-//==============================================================================
-{
-    return 0;
 }
 
 //==============================================================================

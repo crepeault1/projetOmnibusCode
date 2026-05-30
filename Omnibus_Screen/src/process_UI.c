@@ -15,7 +15,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "process_UI.h"
-#include "data_UI.h"
+
 #include "process_button_actions.h"
 #include "process_rotary_encoder_actions.h"
 #include "frame_assembly.h"
@@ -28,7 +28,13 @@
 #define DIGIT_DEFAULT_ROW 6
 #define DIGIT_DEFAULT_COLUMN 1
 
+#define SELECT_BUTTON 1
+#define MENU_BUTTON 2
+
+#define CLEAR 1
+#define NOT_CLEAR 0
 /* Variables -----------------------------------------------------------------*/
+
 PROCESS_UI_SCREEN *current_screen_data;
 PROCESS_UI_SCREEN *next_screen_data;
 PROCESS_UI_SCREEN *previous_screen_data;
@@ -37,12 +43,13 @@ uint8_t next_screen_index;
 int8_t progress_counter;
 bool update_necessary;
 bool waking_up_from_boot;
-bool cursor_is_default;
 uint8_t cursor_position;
 
 uint8_t selected_digit[4];
 uint8_t digit_counter;
 uint8_t selected_accent_region[4];
+
+uint8_t screen_index_offset;
 
 /* Functions -----------------------------------------------------------------*/
 
@@ -54,13 +61,10 @@ void process_UI_init(void)
     // character_buffer_to_pixel_buffer(main_screen.screen_text); //DEBUG
     current_screen_data = data_UI_get_screen_data(20);
     current_index = current_screen_data->index;
-    progress_counter = 0;
-    cursor_position = 0;
-    digit_counter = 0;
-
+    
+    process_UI_reset_on_new_screen();
     waking_up_from_boot = true;
     update_necessary = true;
-    cursor_is_default = true;
 
     scheduler_phase_array[PHASE_PROCESS_UI] = process_UI_run;
 }
@@ -102,7 +106,6 @@ void process_UI_run(void)
 
             // Encoder changes the cursor position
             draw_cursor(CURSOR_DEFAULT_POSITION);
-            cursor_is_default = true;
             // process_UI_cursor_down();
             process_encoder_actions.encoder_clockwise_callback = process_UI_cursor_down;
             process_encoder_actions.encoder_counterclockwise_callback = process_UI_cursor_up;
@@ -144,8 +147,22 @@ void process_UI_run(void)
             process_button_actions.button2_press_callback = process_UI_render_previous;
             break;
         }
+        if(current_screen_data->screen_on_arrival != NULL)
+        {
+            current_screen_data->screen_on_arrival();
+        }
     }
 }
+
+void process_UI_reset_on_new_screen(void)
+{
+    progress_counter = 0;
+    cursor_position = 0;
+    digit_counter = 0;
+    screen_index_offset = 0;
+    selected_accent_region[0] = 0;
+}
+
 
 //==============================================================================
 void process_UI_render_next(void)
@@ -153,6 +170,15 @@ void process_UI_render_next(void)
 //==============================================================================
 {
     uint8_t next_screen_index;
+
+    if(current_screen_data->screen_on_exit != NULL)
+    {
+        if(current_screen_data->screen_on_exit() == NOT_CLEAR)
+        {
+            return;
+        }
+    }
+
     if (current_screen_data->next_screen_count > 1 && current_screen_data->cursor_count > 1)
     {
         next_screen_index = cursor_position;
@@ -162,15 +188,12 @@ void process_UI_render_next(void)
         next_screen_index = 0;
     }
 
-    next_screen_data = data_UI_get_screen_data(current_screen_data->next_screen[next_screen_index]);
+    next_screen_data = data_UI_get_screen_data(current_screen_data->next_screen[next_screen_index + screen_index_offset]);
 
     character_array_copy(next_screen_data->screen_text, selected_accent_region);
 
     current_screen_data = next_screen_data;
-    progress_counter = 0;
-    cursor_position = 0;
-    digit_counter = 0;
-    selected_accent_region[0] = 0;
+    process_UI_reset_on_new_screen();
     update_necessary = true;
 }
 
@@ -184,10 +207,7 @@ void process_UI_render_previous(void)
     character_array_copy(previous_screen_data->screen_text, selected_accent_region);
 
     current_screen_data = previous_screen_data;
-    progress_counter = 0;
-    cursor_position = 0;
-    digit_counter = 0;
-    selected_accent_region[0] = 0;
+    process_UI_reset_on_new_screen();
     update_necessary = true;
 }
 

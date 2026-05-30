@@ -18,7 +18,8 @@
 #include "data_font_5x7.h"
 #include "frame_assembly.h"
 #include "service_scheduler.h"
-#include "data_UI.h"
+#include "data_UI_refactored.h"
+#include "data_config.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -33,7 +34,10 @@
 #define PIXEL_BUFFER_COLUMNS 128
 
 #define MARGIN 1
+#define TOP_ROW_MARGIN 1
 
+#define WHITE 0xFFFF
+#define GRAY 0xD6BA
 #define ACCENT_COLOR 0xFFFF
 #define REGULAR_COLOR 0xC426
 
@@ -58,6 +62,7 @@ void frame_assembly_init(void)
 {
     render_flag = true;
     character_array_copy(boot_screen.screen_text, padding); // Temporary
+    memset(local_frame, ' ', 21);
     scheduler_phase_array[PHASE_PROCESS_FRAME_ASSEMBLY] = character_buffer_to_pixel_buffer;
 }
 
@@ -66,7 +71,7 @@ void character_array_copy(const uint8_t character_buf[8][22], uint8_t accent_reg
 //
 //==============================================================================
 {
-    memcpy(local_frame, character_buf, sizeof(uint8_t) * 176);
+    memcpy(&local_frame[TOP_ROW_MARGIN], &character_buf[TOP_ROW_MARGIN], sizeof(uint8_t) * 154); //7*22
     memcpy(local_frame[8], accent_reg, sizeof(uint8_t) * 4);
 }
 
@@ -87,7 +92,7 @@ void write_character_to_array(uint8_t character, uint8_t row, uint8_t column)
 }
 
 //==============================================================================
-void write_string_to_array(uint8_t str[], uint8_t row, uint8_t column, uint8_t length)
+void write_string_to_array(uint8_t str[], uint8_t row, uint8_t column, uint8_t start, uint8_t length)
 //
 //==============================================================================
 {
@@ -97,7 +102,110 @@ void write_string_to_array(uint8_t str[], uint8_t row, uint8_t column, uint8_t l
     }
     for (unsigned char i = 0; i < length; i++)
     {
-        local_frame[row][column + i] = str[i];
+        local_frame[row][column + i] = str[start + i];
+    }
+}
+
+//==============================================================================
+void write_number_to_array(uint16_t number, uint8_t row, uint8_t column, uint8_t length)
+//
+//==============================================================================
+{
+    //Todo: remplacer par sprintf
+    uint8_t number_ascii[5];
+    if (column + length > CHARACT_ARRAY_COLUMNS)
+    {
+        length = CHARACT_ARRAY_COLUMNS - column;
+    }
+    number_ascii[0] = '0' + (number / 10000);
+    number_ascii[1] = '0' + (number % 10000) / 1000;
+    number_ascii[2] = '0' + (number % 1000) / 100;
+    number_ascii[3] = '0' + (number % 100) / 10;
+    number_ascii[4] = '0' + (number % 10);
+    for (unsigned char i = 0; i < length; i++)
+    {
+        local_frame[row][column + i] = number_ascii[i + (5 - length)];
+    }
+}
+
+void display_stops(void)
+{
+    uint8_t stop_ascii[4];
+    uint8_t line_ascii[3];
+    uint8_t display_time_1[5];
+    uint8_t display_time_2[5];
+    uint8_t display_time_3[3];
+
+    for (unsigned char i = 0; i < data_config_user_setup.number_added_stops; i++)
+    {
+        uint16_t stop = data_config_user_setup.added_stops_and_lines[i][0];
+        uint16_t line = data_config_user_setup.added_stops_and_lines[i][1];
+        uint16_t time_1 = data_config_bus_data_dummy.minutes_until_passage[i][0];
+        uint16_t time_2 = data_config_bus_data_dummy.minutes_until_passage[i][1];
+        uint16_t time_3 = data_config_bus_data_dummy.minutes_until_passage[i][2];
+
+        write_number_to_array(stop, 2 + i, 0, 4);
+        write_number_to_array(line, 2 + i, 5, 3);
+
+        // Have to display both in HH:MM format
+        if (data_config_bus_data_dummy.minutes_until_passage[i][0] > 99)
+        {
+            display_time_1[0] = '0' + time_1 / 1000;
+            display_time_1[1] = '0' + (time_1 % 1000) / 100;
+            display_time_1[2] = 'h';
+            display_time_1[3] = '0' + (time_1 % 100) / 10;
+            display_time_1[4] = '0' + (time_1 % 10);
+
+            display_time_2[0] = '0' + (time_2 / 1000);
+            display_time_2[1] = '0' + ((time_2 % 1000) / 100);
+            display_time_2[2] = 'h';
+            display_time_2[3] = '0' + ((time_2 % 100) / 10);
+            display_time_2[4] = '0' + (time_2 % 10);
+
+            write_string_to_array(display_time_1, 2 + i, 10, 0, 5);
+            write_string_to_array(display_time_2, 2 + i, 16, 0, 5);
+        }
+
+        // Have to display first in **m and second in HH:MM format
+        else if (data_config_bus_data_dummy.minutes_until_passage[i][1] > 99)
+        {
+            display_time_1[0] = '0' + (time_1 % 100) / 10;
+            display_time_1[1] = '0' + (time_1 % 10);
+            display_time_1[2] = 'm';
+
+            display_time_2[0] = '0' + (time_2 / 1000);
+            display_time_2[1] = '0' + ((time_2 % 1000) / 100);
+            display_time_2[2] = 'h';
+            display_time_2[3] = '0' + ((time_2 % 100) / 10);
+            display_time_2[4] = '0' + (time_2 % 10);
+
+            write_string_to_array(display_time_1, 2 + i, 10, 0, 3);
+            write_string_to_array(display_time_2, 2 + i, 14, 0, 5);
+        }
+
+        // All times in minutes (**m) format
+        else
+        {
+            display_time_1[0] = '0' + (time_1 % 100) / 10;
+            display_time_1[1] = '0' + (time_1 % 10);
+            display_time_1[2] = 'm';
+
+            display_time_2[0] = '0' + (time_2 % 100) / 10;
+            display_time_2[1] = '0' + (time_2 % 10);
+            display_time_2[2] = 'm';
+
+            // Guard against 99+ minutes in third position
+            if (data_config_bus_data_dummy.minutes_until_passage[i][2] <= 99)
+            {
+                display_time_3[0] = '0' + (time_3 % 100) / 10;
+                display_time_3[1] = '0' + (time_3 % 10);
+                display_time_3[2] = 'm';
+            }
+
+            write_string_to_array(display_time_1, 2 + i, 10, 0, 3);
+            write_string_to_array(display_time_2, 2 + i, 14, 0, 3);
+            write_string_to_array(display_time_3, 2 + i, 18, 0, 3);
+        }
     }
 }
 
@@ -110,7 +218,7 @@ void draw_cursor(uint8_t row)
     {
         text_under_cursor[i] = local_frame[row][CURSOR_START_COLUMN + i];
     }
-    write_string_to_array(cursor, row, CURSOR_START_COLUMN, CURSOR_LENGTH);
+    write_string_to_array(cursor, row, CURSOR_START_COLUMN, 0, CURSOR_LENGTH);
 }
 
 //==============================================================================
@@ -118,7 +226,7 @@ void restore_under_cursor(uint8_t row)
 //
 //==============================================================================
 {
-    write_string_to_array(text_under_cursor, row, CURSOR_START_COLUMN, CURSOR_LENGTH);
+    write_string_to_array(text_under_cursor, row, CURSOR_START_COLUMN, 0, CURSOR_LENGTH);
 }
 
 //==============================================================================
@@ -185,7 +293,12 @@ uint16_t pixel_coloring(unsigned char x, unsigned char y)
     uint8_t y0 = local_frame[8][1] * BOX_PIXEL_HEIGHT;
     uint8_t y1 = (local_frame[8][3] + 1) * BOX_PIXEL_HEIGHT - 1;
 
-    if (local_frame[8][0] != 0)
+    if(y <= 7)
+    {
+        //First row coloring
+        return GRAY;
+    }
+    else if (local_frame[8][0] != 0)
     {
         if (((x >= x0) && (x <= x1)) && ((y >= y0) && (y <= y1)))
         {

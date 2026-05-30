@@ -1,8 +1,8 @@
-#ifndef SERVICESCHEDULER_H
-#define SERVICESCHEDULER_H
+#ifndef PROCESSCOMMUNICATION_H
+#define PROCESSCOMMUNICATION_H
 /**
   ******************************************************************************
-  * @file           : 
+  * @file           : process_communication.h
   * @brief          : 
   * @author         : Samuel Crepeault
   * 
@@ -13,16 +13,33 @@
   *
   ******************************************************************************
   */
-
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+
 /* Defines -------------------------------------------------------------------*/
+#define NOTHING_TO_DO 0
+#define CHECK_STOP 1
+#define CHECK_LINE 2
+#define GET_LINES 3
+#define ACK_LINE_QUANTITY 4
+#define GET_DIRECTIONS 5
+#define SET_DIRECTION 6
+#define GET_STOPS 7
+#define ACK_STOP_QUANTITY 8
+#define WAIT_TIMES 9
 
 /* Variables ---------------------------------------------------------------- */
-extern void (*scheduler_phase_array[SCHEDULER_PHASES])(void);
+typedef struct {
+    const char *header;
+    int action;
+} INCOMING_FRAME_TYPE;
+
+extern uint8_t process_communication_outbound_code;
 
 /* Prototypes ----------------------------------------------------------------*/
-void service_scheduler_init(void);
-void service_scheduler_run(void);
+void process_communication_init(void);
+
+void process_communication_read(void);
+void process_communication_write(void);
+void process_communication_interpret_frame(int action);
 
 #endif

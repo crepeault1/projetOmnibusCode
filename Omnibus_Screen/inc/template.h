@@ -1,9 +1,9 @@
-#ifndef SERVICESCHEDULER_H
-#define SERVICESCHEDULER_H
+#ifndef TEMPLATE_H
+#define TEMPLATE_H
 /**
   ******************************************************************************
-  * @file           : 
-  * @brief          : 
+  * @file           : template.h
+  * @brief          : Template for other .h files
   * @author         : Samuel Crepeault
   * 
   ******************************************************************************
@@ -13,16 +13,13 @@
   *
   ******************************************************************************
   */
-
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+
 /* Defines -------------------------------------------------------------------*/
 
 /* Variables ---------------------------------------------------------------- */
-extern void (*scheduler_phase_array[SCHEDULER_PHASES])(void);
 
 /* Prototypes ----------------------------------------------------------------*/
-void service_scheduler_init(void);
-void service_scheduler_run(void);
+void function_init(void);
 
 #endif

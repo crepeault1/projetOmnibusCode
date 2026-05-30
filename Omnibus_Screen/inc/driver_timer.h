@@ -24,4 +24,5 @@ extern volatile bool systick_flag;
 /* Functions -----------------------------------------------------------------*/
 void driver_timer_init(void);
 void isr_systick(void);
+uint64_t timer_get_ticks(void);
 #endif

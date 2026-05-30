@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file           : HUB75E.c
+ * @file           : driver_HUB75E.c
  * @brief          : Screen driver
  * @author         : Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
  *

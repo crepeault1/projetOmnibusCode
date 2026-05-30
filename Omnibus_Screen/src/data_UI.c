@@ -14,8 +14,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "data_UI.h"
-
+#include "data_UI_refactored.h"
+#include "process_UI_refactored.h"
+#include "data_config.h"
 /* Defines -------------------------------------------------------------------*/
 
 /* Variables -----------------------------------------------------------------*/
@@ -110,17 +111,17 @@ static const PROCESS_UI_SCREEN* screen_adresses[] = {
     &time_format_screen
 };
 
-const uint8_t string_list_test[10][30] = {
-    {"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
-    {"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"},
-    {"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"},
-    {"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"},
-    {"EEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"},
-    {"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"},
-    {"GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"},
-    {"HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"},
-    {"IIIIIIIIIIIIIIIIIIIIIIIIIIIIII"},
-    {"JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ"}
+uint8_t string_list_test[10][30] = {
+    {"0000 - A           AAAAAAAAAAA"},
+    {"0001 -  B          BBBBBBBBBBB"},
+    {"0002 -   C         CCCCCCCCCCC"},
+    {"0003 -    D        DDDDDDDDDDD"},
+    {"0004 -     E       EEEEEEEEEEE"},
+    {"0005 -      F      FFFFFFFFFFF"},
+    {"0006 -       G     GGGGGGGGGGG"},
+    {"0007 -        H    HHHHHHHHHHH"},
+    {"0008 -         I   IIIIIIIIIII"},
+    {"0009 -          J  JJJJJJJJJJJ"}
 };
 
 PROCESS_UI_SCREEN error_screen = {
@@ -128,13 +129,15 @@ PROCESS_UI_SCREEN error_screen = {
     .next_screen = {30, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 30,
  
-    .behavior = UI_BEHAVIOR_CUSTOM,
+    .behavior = UI_BEHAVIOR_NAVIGATE,
     .select_button_action = 0,
     .max_select_actions = 0,
     .num_digits = 0,
     .menu_button_actions = 0,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -160,6 +163,8 @@ PROCESS_UI_SCREEN boot_screen = {
     .max_select_actions = 0,
     .num_digits = 0,
     .menu_button_actions = 0,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -184,6 +189,8 @@ PROCESS_UI_SCREEN tooltip_screen = {
     .max_select_actions = 0,
     .num_digits = 0,
     .menu_button_actions = 0,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"    Naviguer dans    "},
@@ -195,6 +202,30 @@ PROCESS_UI_SCREEN tooltip_screen = {
         {"pour faire d\xE9filer le"},
         {"curseur/les options. "}}
     };
+
+PROCESS_UI_SCREEN wait_screen = {
+    .index = 12,
+    .next_screen = {0, 0, 0, 0, 0},
+    .next_screen_count = 0,
+    .cursor_count = 0,
+    .previous_screen = 0,
+ 
+    .behavior = UI_BEHAVIOR_WAIT,
+    .select_button_action = 0,
+    .max_select_actions = 0,
+    .num_digits = 0,
+    .menu_button_actions = 0,
+    
+    .screen_text = {
+        {"                     "},
+        {"                     "},
+        {"    Validation...    "},
+        {"                     "},
+        {" Veuillez patienter. "},
+        {"                     "},
+        {"                     "},
+        {"                     "}}
+    };
  
 PROCESS_UI_SCREEN main_screen = {
     .index = 20,
@@ -203,21 +234,31 @@ PROCESS_UI_SCREEN main_screen = {
     .cursor_count = 0,
     .previous_screen = 30,
  
-    .behavior = UI_BEHAVIOR_NAVIGATE,
+    .behavior = UI_BEHAVIOR_CUSTOM,
     .select_button_action = 0,
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = arrival_20,
+    .screen_on_exit = NULL,
     
     .screen_text = {
-        {"MAIN                 "},
         {"                     "},
         {"                     "},
         {"                     "},
         {"                     "},
         {"                     "},
         {"                     "},
-        {"                     "}}
+        {"                     "},
+        {"  Ajoutez un arr\xEAt!  "}},
+      //{"012345678901234567890"}
+    .accent_regions = {
+        {{1,5}, {3,5}},
+        {{4,5}, {6,5}},
+        {{7,5}, {9,5}},
+        {{12,5}, {19,5}},
+        {{0,0}, {0,0}},
+    }    
     };
  
 PROCESS_UI_SCREEN menu_screen = {
@@ -232,6 +273,8 @@ PROCESS_UI_SCREEN menu_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -246,7 +289,7 @@ PROCESS_UI_SCREEN menu_screen = {
  
 PROCESS_UI_SCREEN active_stops_screen = {
     .index = 40,
-    .next_screen = {43, 50, 42, 41, 0},
+    .next_screen = {43, 50, 41, 42, 0},
     .next_screen_count = 4,
     .cursor_count = 2,
     .previous_screen = 30,
@@ -256,6 +299,8 @@ PROCESS_UI_SCREEN active_stops_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -280,6 +325,8 @@ PROCESS_UI_SCREEN too_many_stops_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -304,6 +351,8 @@ PROCESS_UI_SCREEN no_stops_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -328,6 +377,8 @@ PROCESS_UI_SCREEN add_stop_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = exit_43,
     
     .screen_text = {
         {"                     "},
@@ -352,7 +403,9 @@ PROCESS_UI_SCREEN by_line_1_screen = {
     .max_select_actions = 4,
     .num_digits = 3,
     .menu_button_actions = 4,
-    
+    .screen_on_arrival = NULL,
+    .screen_on_exit = exit_44,
+
     .screen_text = {
         {"                     "},
         {"                     "},
@@ -384,12 +437,16 @@ PROCESS_UI_SCREEN by_line_2_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = arrival_45,
+    .screen_on_exit = exit_45,
+    .screen_on_tick = arrival_45,
+    
     
     .screen_text = {
         {"                     "},
         {"                     "},
         {"Ligne ###, vers :    "},
-        {"1                    "},
+        {"                     "},
         {"2                    "},
         {"                     "},
         {"                     "},
@@ -408,6 +465,9 @@ PROCESS_UI_SCREEN by_line_3_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .scroll_amount = 0,
+    .screen_on_arrival = arrival_46,
+    .screen_on_exit = exit_46,
     
     .screen_text = {
         {"                     "},
@@ -417,7 +477,15 @@ PROCESS_UI_SCREEN by_line_3_screen = {
         {"#### - ***********   "},
         {"#### - *********** <<"},
         {"#### - ***********   "},
-        {"          \xAE          "}}
+        {"          \xAE          "}},
+
+    .accent_regions = {
+        {{9,3}, {11,3}},
+        {{9,7}, {11,7}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}}
+    }    
     };
  
 PROCESS_UI_SCREEN by_stop_1_screen = {
@@ -432,6 +500,8 @@ PROCESS_UI_SCREEN by_stop_1_screen = {
     .max_select_actions = 5,
     .num_digits = 4,
     .menu_button_actions = 5,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = exit_47,
     
     .screen_text = {
         {"                     "},
@@ -464,16 +534,28 @@ PROCESS_UI_SCREEN by_stop_2_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .scroll_amount = 0,
+    .screen_on_arrival = arrival_48,
+    .screen_on_exit = exit_48,
+
     
     .screen_text = {
         {"                     "},
         {"                     "},
-        {"Lignes, arr\xEAt 1102 : "},
+        {"Lignes, arr\xEAt #### : "},
         {"          \xA9          "},
         {"         001         "},
         {"         011       <<"},
         {"         283         "},
-        {"          \xAE          "}}
+        {"          \xAE          "}},
+    
+    .accent_regions = {
+        {{9,3}, {11,3}},
+        {{9,7}, {11,7}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}}
+    }    
     };
  
 PROCESS_UI_SCREEN stop_added_screen = {
@@ -488,6 +570,8 @@ PROCESS_UI_SCREEN stop_added_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = arrival_49,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -512,12 +596,14 @@ PROCESS_UI_SCREEN remove_stop_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
         {"                     "},
         {"Retirez un arr\xEAt:    "},
-        {"  ####             <<"},
+        {"  ####               "},
         {"  ####               "},
         {"  ####               "},
         {"  ####               "},
@@ -536,6 +622,8 @@ PROCESS_UI_SCREEN stop_removed_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -560,12 +648,14 @@ PROCESS_UI_SCREEN display_mode_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
         {"                     "},
         {"MODE D'AFFICHAGE     "},
-        {"[X]  TOUJOURS ON   <<"},
+        {"[X]  TOUJOURS ON     "},
         {"[ ]  HEURES PROG.    "},
         {"[ ]  REVEIL BOUTON   "},
         {"                     "},
@@ -584,6 +674,8 @@ PROCESS_UI_SCREEN time_activate_24_1_screen = {
     .max_select_actions = 3,
     .num_digits = 2,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -616,6 +708,8 @@ PROCESS_UI_SCREEN time_activate_24_2_screen = {
     .max_select_actions = 3,
     .num_digits = 2,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -648,6 +742,8 @@ PROCESS_UI_SCREEN time_activate_12_1_screen = {
     .max_select_actions = 0,
     .num_digits = 3,
     .menu_button_actions = 0,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -680,6 +776,8 @@ PROCESS_UI_SCREEN time_activate_12_2_screen = {
     .max_select_actions = 0,
     .num_digits = 2,
     .menu_button_actions = 0,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -712,6 +810,8 @@ PROCESS_UI_SCREEN wake_duration_screen = {
     .max_select_actions = 2,
     .num_digits = 1,
     .menu_button_actions = 2,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -744,6 +844,8 @@ PROCESS_UI_SCREEN changes_saved_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -758,16 +860,18 @@ PROCESS_UI_SCREEN changes_saved_screen = {
  
 PROCESS_UI_SCREEN wifi_connection_screen = {
     .index = 70,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {71, 73, 0, 0, 0},
     .next_screen_count = 2,
     .cursor_count = 2,
-    .previous_screen = 0,
+    .previous_screen = 30,
  
     .behavior = UI_BEHAVIOR_MENU_LIST,
     .select_button_action = 0,
-    .max_select_actions = 0,
+    .max_select_actions = 1,
     .num_digits = 0,
-    .menu_button_actions = 0,
+    .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -782,16 +886,18 @@ PROCESS_UI_SCREEN wifi_connection_screen = {
  
 PROCESS_UI_SCREEN wifi_manual_1_screen = {
     .index = 71,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {72, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 70,
  
     .behavior = UI_BEHAVIOR_SCROLL,
     .select_button_action = 0,
-    .max_select_actions = 0,
+    .max_select_actions = 1,
     .num_digits = 0,
-    .menu_button_actions = 0,
+    .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -806,16 +912,18 @@ PROCESS_UI_SCREEN wifi_manual_1_screen = {
  
 PROCESS_UI_SCREEN wifi_manual_2_screen = {
     .index = 72,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {74, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 71,
  
     .behavior = UI_BEHAVIOR_TEXT_ENTRY,
     .select_button_action = 0,
-    .max_select_actions = 0,
+    .max_select_actions = 30,
     .num_digits = 0,
-    .menu_button_actions = 0,
+    .menu_button_actions = 30,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -830,16 +938,18 @@ PROCESS_UI_SCREEN wifi_manual_2_screen = {
  
 PROCESS_UI_SCREEN wifi_automatic_1_screen = {
     .index = 73,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {74, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 70,
  
     .behavior = UI_BEHAVIOR_NAVIGATE,
     .select_button_action = 0,
-    .max_select_actions = 0,
+    .max_select_actions = 1,
     .num_digits = 0,
-    .menu_button_actions = 0,
+    .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -854,7 +964,7 @@ PROCESS_UI_SCREEN wifi_automatic_1_screen = {
  
 PROCESS_UI_SCREEN wifi_trying_connection_screen = {
     .index = 74,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {75, 76, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
     .previous_screen = 0,
@@ -864,6 +974,8 @@ PROCESS_UI_SCREEN wifi_trying_connection_screen = {
     .max_select_actions = 0,
     .num_digits = 0,
     .menu_button_actions = 0,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -878,16 +990,18 @@ PROCESS_UI_SCREEN wifi_trying_connection_screen = {
  
 PROCESS_UI_SCREEN wifi_success_screen = {
     .index = 75,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {70, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 70,
  
     .behavior = UI_BEHAVIOR_NAVIGATE,
     .select_button_action = 0,
-    .max_select_actions = 0,
+    .max_select_actions = 1,
     .num_digits = 0,
-    .menu_button_actions = 0,
+    .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -902,16 +1016,18 @@ PROCESS_UI_SCREEN wifi_success_screen = {
  
 PROCESS_UI_SCREEN wifi_failure_screen = {
     .index = 76,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {70, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 70,
  
     .behavior = UI_BEHAVIOR_NAVIGATE,
     .select_button_action = 0,
-    .max_select_actions = 0,
+    .max_select_actions = 1,
     .num_digits = 0,
-    .menu_button_actions = 0,
+    .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -926,16 +1042,18 @@ PROCESS_UI_SCREEN wifi_failure_screen = {
  
 PROCESS_UI_SCREEN data_sync_1_screen = {
     .index = 80,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {81, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 2,
-    .previous_screen = 0,
+    .previous_screen = 30,
  
     .behavior = UI_BEHAVIOR_MENU_LIST,
     .select_button_action = 0,
-    .max_select_actions = 0,
+    .max_select_actions = 1,
     .num_digits = 0,
-    .menu_button_actions = 0,
+    .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -950,7 +1068,7 @@ PROCESS_UI_SCREEN data_sync_1_screen = {
  
 PROCESS_UI_SCREEN data_sync_2_screen = {
     .index = 81,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {82, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
     .previous_screen = 0,
@@ -960,6 +1078,8 @@ PROCESS_UI_SCREEN data_sync_2_screen = {
     .max_select_actions = 0,
     .num_digits = 0,
     .menu_button_actions = 0,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -974,16 +1094,18 @@ PROCESS_UI_SCREEN data_sync_2_screen = {
  
 PROCESS_UI_SCREEN data_sync_3_screen = {
     .index = 82,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {80, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 80,
  
     .behavior = UI_BEHAVIOR_NAVIGATE,
     .select_button_action = 0,
-    .max_select_actions = 0,
+    .max_select_actions = 1,
     .num_digits = 0,
-    .menu_button_actions = 0,
+    .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -998,16 +1120,18 @@ PROCESS_UI_SCREEN data_sync_3_screen = {
  
 PROCESS_UI_SCREEN time_format_screen = {
     .index = 83,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {83, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 2,
-    .previous_screen = 0,
+    .previous_screen = 30,
  
     .behavior = UI_BEHAVIOR_TOGGLE,
     .select_button_action = 0,
-    .max_select_actions = 0,
+    .max_select_actions = 1,
     .num_digits = 0,
-    .menu_button_actions = 0,
+    .menu_button_actions = 1,
+    .screen_on_arrival = NULL,
+    .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
@@ -1028,6 +1152,8 @@ void data_UI_init(void)
 //
 //==============================================================================
 {
+    by_line_3_screen.scroll_amount = data_config_bus_data_dummy.number_of_stops;
+    by_stop_2_screen.scroll_amount = data_config_bus_data_dummy.number_of_lines;
 }
 
 //==============================================================================
