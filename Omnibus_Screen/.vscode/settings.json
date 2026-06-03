@@ -43,5 +43,5 @@
     "raspberry-pi-pico.useCmakeTools": true,
     "raspberry-pi-pico.cmakePath": "${HOME}/.pico-sdk/cmake/v3.31.5/bin/cmake",
     "raspberry-pi-pico.ninjaPath": "${HOME}/.pico-sdk/ninja/v1.12.1/ninja",
-    "cmake.sourceDirectory": "C:/Users/2312455/Documents/Omnibus_Prog/projetOmnibusCode/Omnibus_Screen"
+    "cmake.sourceDirectory": "C:/Users/samcr/Documents/Programming/projetOmnibusCode/Omnibus_Screen"
 }

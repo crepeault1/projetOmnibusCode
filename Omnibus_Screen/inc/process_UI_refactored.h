@@ -55,10 +55,6 @@ struct PROCESS_UI_MASTER_STATE_ {
 
     /* Set by stop-entry's on_exit, read by stop_validating's on_arrival. */
     uint16_t entered_stop_id;
-
-    /* Set by stop_validating on failure, read by stop-entry's on_arrival to
-     * display a localized error message. CSV_ERR_NONE means "no error". */
-    uint8_t  last_validation_error;
 };
 
 extern PROCESS_UI_MASTER_STATE state;
@@ -77,6 +73,13 @@ void load_accent_region(uint8_t region);
 
 //entry-exit
 bool arrival_20(PROCESS_UI_MASTER_STATE *st);
+bool tick_20(PROCESS_UI_MASTER_STATE *st);
+
+bool arrival_40(PROCESS_UI_MASTER_STATE *st);
+
+bool arrival_41(PROCESS_UI_MASTER_STATE *st);
+
+bool arrival_41(PROCESS_UI_MASTER_STATE *st);
 
 bool exit_43(PROCESS_UI_MASTER_STATE *st);
 
@@ -96,5 +99,15 @@ bool arrival_48(PROCESS_UI_MASTER_STATE *st);
 bool exit_48(PROCESS_UI_MASTER_STATE *st);
 
 bool arrival_49(PROCESS_UI_MASTER_STATE *st);
+
+bool exit_51(PROCESS_UI_MASTER_STATE *st);
+
+bool arrival_60(PROCESS_UI_MASTER_STATE *st);
+
+bool exit_61(PROCESS_UI_MASTER_STATE *st);
+
+bool exit_62(PROCESS_UI_MASTER_STATE *st);
+
+bool arrival_83(PROCESS_UI_MASTER_STATE *st);
 
 #endif

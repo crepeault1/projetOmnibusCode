@@ -200,11 +200,11 @@ void display_stops(void)
                 display_time_3[0] = '0' + (time_3 % 100) / 10;
                 display_time_3[1] = '0' + (time_3 % 10);
                 display_time_3[2] = 'm';
+                write_string_to_array(display_time_3, 2 + i, 18, 0, 3);
             }
 
             write_string_to_array(display_time_1, 2 + i, 10, 0, 3);
             write_string_to_array(display_time_2, 2 + i, 14, 0, 3);
-            write_string_to_array(display_time_3, 2 + i, 18, 0, 3);
         }
     }
 }

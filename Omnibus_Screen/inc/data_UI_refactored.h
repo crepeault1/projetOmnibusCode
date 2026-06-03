@@ -55,6 +55,7 @@ typedef struct
   uint8_t select_button_action;
   uint8_t max_select_actions;
   uint8_t num_digits;
+  uint8_t digit_max[4];
   uint8_t digit_positions[4][2];
   uint8_t menu_button_actions;
   uint8_t scroll_amount;

@@ -42,10 +42,12 @@ typedef struct
 
     uint8_t current_hour_number;
     uint8_t current_minute_number;
-    uint16_t current_connection_word[100];
+    uint16_t current_connection_word[100]; //For wifi eventually
 
-    uint16_t desired_start_time;
-    uint16_t desired_stop_time;
+    uint16_t desired_start_hour;
+    uint16_t desired_start_minute;
+    uint16_t desired_stop_hour;
+    uint16_t desired_stop_minute;
 
     uint16_t added_stops_and_lines[MAX_STOPS][2];
     uint8_t added_stops_and_lines_index;
@@ -63,14 +65,13 @@ typedef struct
     uint8_t  number_of_lines;
     uint8_t  number_of_stops;
     uint16_t timetable_stop_list[100];
-    uint8_t  timetable_stop_names[100][12];
+    uint8_t  timetable_stop_names[100][13];
     uint8_t stop_counter;
     uint16_t  line_list[150];
     uint8_t line_counter;
     uint8_t  directions[2][18];
     uint8_t direction_counter;
-    
-    volatile uint16_t minutes_until_passage[MAX_STOPS][3];
+    volatile uint16_t minutes_until_passage[MAX_STOPS][5];
 } DATA_CONFIG_BUS_DATA;
 
 

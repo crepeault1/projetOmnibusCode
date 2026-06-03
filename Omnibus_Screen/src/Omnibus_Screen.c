@@ -138,7 +138,6 @@ int main()
             if(counter > 100) 
             {
                 counter = 0;
-                //uart_service_write(test_frame, 0);
             }
         }
     }

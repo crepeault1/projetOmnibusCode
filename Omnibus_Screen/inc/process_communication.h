@@ -26,6 +26,7 @@
 #define GET_STOPS 7
 #define ACK_STOP_QUANTITY 8
 #define WAIT_TIMES 9
+#define RESET 10
 
 /* Variables ---------------------------------------------------------------- */
 typedef struct {
@@ -34,7 +35,7 @@ typedef struct {
 } INCOMING_FRAME_TYPE;
 
 extern uint8_t process_communication_outbound_code;
-
+extern bool process_communication_exit_block;
 /* Prototypes ----------------------------------------------------------------*/
 void process_communication_init(void);
 

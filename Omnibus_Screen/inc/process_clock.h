@@ -22,6 +22,7 @@ typedef struct
 {
     uint32_t epoch;
     bool update;
+    bool display_on;
 } PROCESS_CLOCK;
 
 extern PROCESS_CLOCK process_clock;

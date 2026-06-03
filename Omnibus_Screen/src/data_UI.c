@@ -241,6 +241,7 @@ PROCESS_UI_SCREEN main_screen = {
     .menu_button_actions = 1,
     .screen_on_arrival = arrival_20,
     .screen_on_exit = NULL,
+    .screen_on_tick = tick_20,
     
     .screen_text = {
         {"                     "},
@@ -263,9 +264,9 @@ PROCESS_UI_SCREEN main_screen = {
  
 PROCESS_UI_SCREEN menu_screen = {
     .index = 30,
-    .next_screen = {40, 60, 70, 80, 83},
-    .next_screen_count = 5,
-    .cursor_count = 5,
+    .next_screen = {40, 60, 83, 70, 80},
+    .next_screen_count = 3,
+    .cursor_count = 3,
     .previous_screen = 20,
  
     .behavior = UI_BEHAVIOR_MENU_LIST,
@@ -282,14 +283,14 @@ PROCESS_UI_SCREEN menu_screen = {
         {"MENU                 "},
         {"  ARRETS ACTIFS      "},
         {"  MODE D'AFFICHAGE   "},
-        {"  CONNEXION WIFI     "},
-        {"  SYNCHRONISATION    "},
-        {"  FORMAT D'HEURE     "}}
+        {"  FORMAT D'HEURE     "},
+        {"                     "},
+        {"                     "}}
     };
  
 PROCESS_UI_SCREEN active_stops_screen = {
     .index = 40,
-    .next_screen = {43, 50, 41, 42, 0},
+    .next_screen = {43, 51, 0, 0, 0},
     .next_screen_count = 4,
     .cursor_count = 2,
     .previous_screen = 30,
@@ -299,15 +300,15 @@ PROCESS_UI_SCREEN active_stops_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
-    .screen_on_arrival = NULL,
+    .screen_on_arrival = arrival_40,
     .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
         {"                     "},
         {"ARRETS ACTIFS        "},
-        {"  AJOUTER            "},
-        {"  SUPPRIMER          "},
+        {"  AJOUTER UN ARRET   "},
+        {"  RETIRER ARRETS     "},
         {"                     "},
         {"                     "},
         {"                     "}}
@@ -336,7 +337,14 @@ PROCESS_UI_SCREEN too_many_stops_screen = {
         {"                     "},
         {" Veuillez commencer  "},
         {"par retirer un arr\xEAt."},
-        {"    > Continuer <    "}}
+        {"    > Continuer <    "}},
+    .accent_regions = {
+        {{5,7}, {15,7}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+    }    
     };
  
 PROCESS_UI_SCREEN no_stops_screen = {
@@ -361,8 +369,15 @@ PROCESS_UI_SCREEN no_stops_screen = {
         {"     supprimer.      "},
         {"                     "},
         {" Veuillez commencer  "},
-        {"par retirer un arr\xEAt."},
-        {"    > Continuer <    "}}
+        {"par ajouter un arr\xEAt."},
+        {"    > Continuer <    "}},
+    .accent_regions = {
+        {{5,7}, {15,7}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+    }    
     };
  
 PROCESS_UI_SCREEN add_stop_screen = {
@@ -624,13 +639,13 @@ PROCESS_UI_SCREEN stop_removed_screen = {
     .num_digits = 0,
     .menu_button_actions = 1,
     .screen_on_arrival = NULL,
-    .screen_on_exit = NULL,
+    .screen_on_exit = exit_51,
     
     .screen_text = {
         {"                     "},
         {"                     "},
-        {"  Arr\xEAt retir\xE9 avec  "},
-        {"       succ\xE8s.       "},
+        {"   Arr\xEAts retir\xE9s    "},
+        {"     avec succ\xE8s.    "},
         {"                     "},
         {"                     "},
         {"     > Valider <     "},
@@ -644,23 +659,30 @@ PROCESS_UI_SCREEN display_mode_screen = {
     .cursor_count = 3,
     .previous_screen = 30,
  
-    .behavior = UI_BEHAVIOR_MENU_LIST,
+    .behavior = UI_BEHAVIOR_TOGGLE,
     .select_button_action = 0,
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
-    .screen_on_arrival = NULL,
+    .screen_on_arrival = arrival_60,
     .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
         {"                     "},
         {"MODE D'AFFICHAGE     "},
-        {"[X]  TOUJOURS ON     "},
-        {"[ ]  HEURES PROG.    "},
-        {"[ ]  REVEIL BOUTON   "},
+        {"  TOUJOURS ON        "},
+        {"  HEURES PROG.       "},
+        {"  REVEIL BOUTON      "},
         {"                     "},
-        {"                     "}}
+        {"                     "}},
+    .accent_regions = {
+        {{1,3}, {14,3}},
+        {{1,4}, {14,4}},
+        {{1,5}, {14,5}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+    } 
     };
  
 PROCESS_UI_SCREEN time_activate_24_1_screen = {
@@ -673,27 +695,28 @@ PROCESS_UI_SCREEN time_activate_24_1_screen = {
     .behavior = UI_BEHAVIOR_NUMERIC_ENTRY,
     .select_button_action = 0,
     .max_select_actions = 3,
-    .num_digits = 2,
+    .num_digits = 4,
+    .digit_max  = {3, 10, 6, 10},
     .menu_button_actions = 1,
     .screen_on_arrival = NULL,
-    .screen_on_exit = NULL,
+    .screen_on_exit = exit_61,
     
     .screen_text = {
         {"                     "},
         {"                     "},
         {"Heure d'activation : "},
-        {"                     "},
+        {"(format 24h)         "},
         {" \xA9    \xA9              "},
         {"[##]:[##]     Valider"},
         {" \xAE    \xAE              "},
         {"                     "}},
 
     .accent_regions = {
-        {{0,5}, {3,5}},
-        {{5,5}, {6,5}},
-        {{14,5}, {21,5}},
-        {{0,0}, {0,0}},
-        {{0,0}, {0,0}},
+        {{1,5}, {2,5}},
+        {{1,5}, {2,5}},
+        {{6,5}, {7,5}},
+        {{6,5}, {7,5}},
+        {{14,5}, {21,5}}
     }    
     };
  
@@ -707,10 +730,11 @@ PROCESS_UI_SCREEN time_activate_24_2_screen = {
     .behavior = UI_BEHAVIOR_NUMERIC_ENTRY,
     .select_button_action = 0,
     .max_select_actions = 3,
-    .num_digits = 2,
+    .num_digits = 4,
+    .digit_max  = {3, 10, 6, 10},
     .menu_button_actions = 1,
     .screen_on_arrival = NULL,
-    .screen_on_exit = NULL,
+    .screen_on_exit = exit_62,
     
     .screen_text = {
         {"                     "},
@@ -723,20 +747,20 @@ PROCESS_UI_SCREEN time_activate_24_2_screen = {
         {"                     "}},
 
     .accent_regions = {
-        {{0,5}, {3,5}},
-        {{5,5}, {6,5}},
-        {{14,5}, {21,5}},
-        {{0,0}, {0,0}},
-        {{0,0}, {0,0}},
+        {{1,5}, {2,5}},
+        {{1,5}, {2,5}},
+        {{6,5}, {7,5}},
+        {{6,5}, {7,5}},
+        {{14,5}, {21,5}}
     }    
     };
  
 PROCESS_UI_SCREEN time_activate_12_1_screen = {
     .index = 63,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {64, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 60,
  
     .behavior = UI_BEHAVIOR_NUMERIC_ENTRY,
     .select_button_action = 0,
@@ -757,9 +781,9 @@ PROCESS_UI_SCREEN time_activate_12_1_screen = {
         {"                     "}},
 
     .accent_regions = {
-        {{0,5}, {3,5}},
-        {{5,5}, {6,5}},
-        {{7,5}, {10,5}},
+        {{1,5}, {2,5}},
+        {{6,5}, {7,5}},
+        {{9,5}, {10,5}},
         {{14,5}, {21,5}},
         {{0,0}, {0,0}},
     }    
@@ -767,10 +791,10 @@ PROCESS_UI_SCREEN time_activate_12_1_screen = {
  
 PROCESS_UI_SCREEN time_activate_12_2_screen = {
     .index = 64,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {66, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 63,
  
     .behavior = UI_BEHAVIOR_NUMERIC_ENTRY,
     .select_button_action = 0,
@@ -791,9 +815,9 @@ PROCESS_UI_SCREEN time_activate_12_2_screen = {
         {"                     "}},
 
     .accent_regions = {
-        {{0,5}, {3,5}},
-        {{5,5}, {6,5}},
-        {{7,5}, {10,5}},
+        {{1,5}, {2,5}},
+        {{6,5}, {7,5}},
+        {{9,5}, {10,5}},
         {{14,5}, {21,5}},
         {{0,0}, {0,0}},
     }    
@@ -801,10 +825,10 @@ PROCESS_UI_SCREEN time_activate_12_2_screen = {
  
 PROCESS_UI_SCREEN wake_duration_screen = {
     .index = 65,
-    .next_screen = {1, 0, 0, 0, 0},
+    .next_screen = {66, 0, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 0,
-    .previous_screen = 0,
+    .previous_screen = 60,
  
     .behavior = UI_BEHAVIOR_NUMERIC_ENTRY,
     .select_button_action = 0,
@@ -825,7 +849,7 @@ PROCESS_UI_SCREEN wake_duration_screen = {
         {"                     "}},
 
     .accent_regions = {
-        {{0,5}, {3,5}},
+        {{1,5}, {2,5}},
         {{14,5}, {21,5}},
         {{0,0}, {0,0}},
         {{0,0}, {0,0}},
@@ -1121,7 +1145,7 @@ PROCESS_UI_SCREEN data_sync_3_screen = {
  
 PROCESS_UI_SCREEN time_format_screen = {
     .index = 83,
-    .next_screen = {83, 0, 0, 0, 0},
+    .next_screen = {83, 83, 0, 0, 0},
     .next_screen_count = 1,
     .cursor_count = 2,
     .previous_screen = 30,
@@ -1131,18 +1155,25 @@ PROCESS_UI_SCREEN time_format_screen = {
     .max_select_actions = 1,
     .num_digits = 0,
     .menu_button_actions = 1,
-    .screen_on_arrival = NULL,
+    .screen_on_arrival = arrival_83,
     .screen_on_exit = NULL,
     
     .screen_text = {
         {"                     "},
         {"                     "},
         {"FORMAT DE L'HEURE    "},
-        {"[ ]  12H           <<"},
-        {"[X]  24H             "},
+        {"  12H                "},
+        {"  24H                "},
         {"                     "},
         {"                     "},
-        {"                     "}}
+        {"                     "}},
+    .accent_regions = {
+        {{1,3}, {4,3}},
+        {{1,4}, {4,4}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+    }    
     };
 
 
