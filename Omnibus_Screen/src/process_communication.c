@@ -225,7 +225,7 @@ void process_communication_interpret_frame(int action)
     }
     else if (incoming_frame[10] == 'B')
     {
-      write_string_to_array("Arret invalide", 7, 3, 0, 14);
+      write_string_to_array("Arr\xEAt invalide", 7, 3, 0, 14);
       process_communication_exit_block = EXIT_BLOCK;
     }
     break;
@@ -247,6 +247,7 @@ void process_communication_interpret_frame(int action)
     if (incoming_frame[9] == 'G')
     {
       process_communication_outbound_code = GET_DIRECTIONS;
+      write_string_to_array("Patientez...", 7, 4, 0, 12);
     }
     else if (incoming_frame[9] == 'B')
     {

@@ -82,6 +82,7 @@
             this.rtfBox_json = new System.Windows.Forms.RichTextBox();
             this.button_saveToCache = new System.Windows.Forms.Button();
             this.button_reloadFromCache = new System.Windows.Forms.Button();
+            this.timerPassageRefresh = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // textBoxKey
@@ -606,6 +607,12 @@
             this.button_reloadFromCache.UseVisualStyleBackColor = false;
             this.button_reloadFromCache.Click += new System.EventHandler(this.button_reloadFromCache_Click);
             // 
+            // timerPassageRefresh
+            // 
+            this.timerPassageRefresh.Enabled = true;
+            this.timerPassageRefresh.Interval = 10000;
+            this.timerPassageRefresh.Tick += new System.EventHandler(this.timerPassageRefresh_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -724,6 +731,7 @@
         private System.Windows.Forms.RichTextBox rtfBox_json;
         private System.Windows.Forms.Button button_saveToCache;
         private System.Windows.Forms.Button button_reloadFromCache;
+        private System.Windows.Forms.Timer timerPassageRefresh;
     }
 }
 

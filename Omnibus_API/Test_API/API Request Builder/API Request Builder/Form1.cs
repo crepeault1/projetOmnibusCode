@@ -5,22 +5,24 @@ using System.ComponentModel.Design.Serialization;
 using System.Data;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 //Includes
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Permissions;
+using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows.Forms;
 using static API_Request_Builder.Form1;
 using static System.DateTimeOffset;
 using static System.Net.WebRequestMethods;
-using System.Threading;
-using System.IO;
 
 namespace API_Request_Builder
 {
@@ -36,9 +38,10 @@ namespace API_Request_Builder
         const string LINE_IDENTIFIER_PREFIX = "LIDN";
         const string DIRECTIONS_PREFIX = "DIRE";
         const string STOP_NUMBER_PREFIX = "SNBR";
-        const string STOP_IDENTIFIER_PREFIX = "LIDN";
+        const string STOP_IDENTIFIER_PREFIX = "SIDN";
         const string DONE_PREFIX = "DONE";
-        const string TIME_REMAINING_PREFIX = "REMN";
+        const string TIME_REMAINING1_PREFIX = "REM1";
+        const string TIME_REMAINING2_PREFIX = "REM2";
 
         //Pico-side (sent to Zero)
         const int CHECK_STOP = 0;
@@ -50,30 +53,27 @@ namespace API_Request_Builder
         const int GET_STOPS = 6;
         const int ACK_STOP_QUANTITY = 7;
         const int GET_TIMES = 8;
+        const int RESET = 9;
 
+        const bool NORMAL_PADDING = false;
+        const bool STRING_PADDING = true;
 
         string UART_Buffer_In = "";
         string UART_Buffer_Out = "";
 
-        public class Direction
-        {
-            public int directionId { get; set; }
-            public string headsign { get; set; }
-            public string representativeTripID { get; set; }   // integer id from trips list
-            public int stopPatternId { get; set; }
-            public List<Stop> stopsInThisDirection { get; set; } = new List<Stop>();
-            public List<string> additionalTripIDs { get; set; }
-            public bool stopsLoaded { get; set; } = false;
-        }
+        const int MaxPassages = 3;
+        const int NoBusSentinel = 9999;   // can't be a real minute value — marks an empty slot
 
         public class Stop
         {
             public string stopTransitlandID { get; set; }
             public string stopID { get; set; }
             public string stopName { get; set; }
-            bool isStopSelected;
             public List<Route> routesAtThisStop { get; set; } = new List<Route>();
-            public List<DateTimeOffset> stopDepartures { get; set; } = new List<DateTimeOffset>();
+            public List<Departure> stopDepartures { get; set; } = new List<Departure>();
+            public DateTimeOffset departuresFetchedAt { get; set; }   // this stop's own freshness clock
+            [JsonIgnore]
+            public readonly object depLock = new object();   // guards stopDepartures; never serialized
         }
 
         public class Route
@@ -86,15 +86,44 @@ namespace API_Request_Builder
             public bool directionsLoaded { get; set; } = false;
         }
 
+        public class Direction
+        {
+            public int directionId { get; set; }
+            public string headsign { get; set; }
+            public string representativeTripID { get; set; }   // integer id from trips list
+            public int stopPatternId { get; set; }
+            public List<Stop> stopsInThisDirection { get; set; } = new List<Stop>();
+            public List<string> additionalTripIDs { get; set; }
+            public bool stopsLoaded { get; set; } = false;
+        }
+        public class Departure
+        {
+            public DateTimeOffset time { get; set; }     // stored as UTC instant
+            public string routeID { get; set; }
+            public int directionId { get; set; } = -1;   // -1 = unknown, can't collide with 0/1
+            public string headsign { get; set; }
+            public string tripID { get; set; }
+        }
+
         Dictionary<string, Stop> stopsDict = new Dictionary<string, Stop>();
         Dictionary<string, Route> routesDict = new Dictionary<string, Route>();
 
         HttpClient client = new HttpClient();
 
-        int incoming_stop_or_line_int;
         string incoming_stop_or_line_str;
         string saved_stop_or_line_str;
         int saved_direction;
+        bool waitTimesReady;
+        bool refresh_tick = false;
+
+        public struct RequestedWaitTimes
+        {
+            public string stopKey;
+            public string routeKey;
+        }
+        Dictionary<int, RequestedWaitTimes> waitTimesDict = new Dictionary<int, RequestedWaitTimes>();
+        int waitTimesIndex;
+
         public struct Frame
         {
             public string header;
@@ -103,7 +132,6 @@ namespace API_Request_Builder
 
         public class FrameRouter
         {
-            int incoming_stop_or_line;
             static Frame[] frame_headers = new Frame[]
             {
                 new Frame { header = "(SCHK", action = CHECK_STOP},
@@ -114,7 +142,8 @@ namespace API_Request_Builder
                 new Frame { header = "(DSET",  action = SET_DIRECTION},
                 new Frame { header = "(SGET",  action = GET_STOPS},
                 new Frame { header = "(SACK", action = ACK_STOP_QUANTITY},
-                new Frame { header = "(WAIT", action = GET_TIMES}
+                new Frame { header = "(WAIT", action = GET_TIMES},
+                new Frame { header = "(RESE", action = RESET}
             };
 
             public static int GetAction(string received)
@@ -207,26 +236,6 @@ namespace API_Request_Builder
                 int secondsSinceEpoch = (int)t.TotalSeconds;
                 handle_epoch(secondsSinceEpoch);
             }
-            
-            DateTimeOffset rightNow = DateTimeOffset.Now;
-            labelCurrentTime.Text = rightNow.ToString();
-            if (rtfBoxAllDepartures.Text != "")
-            {
-                int counter = 0;
-                foreach (DateTimeOffset storedDeparture in stopsDict[selectedStop].stopDepartures)
-                {
-                    if (DateTimeOffset.Compare(storedDeparture, rightNow) > 0 && counter < 3) //Departure is after right now
-                    {
-                        System.TimeSpan timeToNextPassage = storedDeparture.Subtract(rightNow);
-                        nextThreeDepartures[counter] = timeToNextPassage.ToString("mm");
-                        counter++;
-                    }
-                }
-                textBoxNextDeparture1.Text = nextThreeDepartures[0];
-                textBoxNextDeparture2.Text = nextThreeDepartures[1];
-                textBoxNextDeparture3.Text = nextThreeDepartures[2];
-
-            }
 
             //COM port validation
             if (UART_Buffer_Out != "")
@@ -240,7 +249,9 @@ namespace API_Request_Builder
 
 
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         private void SaveCacheToDisk()
         {
             var cacheObject = new
@@ -269,7 +280,17 @@ namespace API_Request_Builder
                     s.stopID,
                     s.stopTransitlandID,
                     s.stopName,
-                    routes = s.routesAtThisStop.Select(r => r.routeID).ToList()
+                    routes = s.routesAtThisStop.Select(r => r.routeID).ToList(),
+                    // NEW — its own freshness clock travels with the data
+                    departuresFetchedAt = s.departuresFetchedAt,
+                    departures = s.stopDepartures.Select(d => new
+                    {
+                        d.time,
+                        d.routeID,
+                        d.directionId,
+                        d.headsign,
+                        d.tripID
+                    }).ToList()
                 }).ToList()
             };
 
@@ -279,6 +300,10 @@ namespace API_Request_Builder
             labelStatus.Text = "Cache saved to disk";
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private bool TryLoadCacheFromDisk()
         {
             if (!System.IO.File.Exists(cacheFilePath))
@@ -301,6 +326,35 @@ namespace API_Request_Builder
                     stop.stopID = s.GetProperty("stopID").GetString();
                     stop.stopTransitlandID = s.GetProperty("stopTransitlandID").GetString();
                     stop.stopName = s.GetProperty("stopName").GetString();
+
+                    if (s.TryGetProperty("departuresFetchedAt", out var fa)
+                        && fa.ValueKind == JsonValueKind.String)
+                        stop.departuresFetchedAt = DateTimeOffset.Parse(
+                            fa.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+
+                    if (s.TryGetProperty("departures", out var deps) && deps.ValueKind == JsonValueKind.Array)
+                    {
+                        DateTimeOffset now = DateTimeOffset.UtcNow;
+                        foreach (JsonElement d in deps.EnumerateArray())
+                        {
+                            DateTimeOffset t = DateTimeOffset.Parse(
+                                d.GetProperty("time").GetString(),
+                                CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                            if (t < now) continue;   // drop stale past departures at load time
+
+                            stop.stopDepartures.Add(new Departure
+                            {
+                                time = t,
+                                routeID = d.GetProperty("routeID").GetString(),
+                                directionId = d.TryGetProperty("directionId", out var di) ? di.GetInt32() : -1,
+                                headsign = d.TryGetProperty("headsign", out var hs)
+                                                  && hs.ValueKind == JsonValueKind.String ? hs.GetString() : null,
+                                tripID = d.TryGetProperty("tripID", out var ti)
+                                                  && ti.ValueKind == JsonValueKind.String ? ti.GetString() : null,
+                            });
+                        }
+                    }
+
                     stopsDict[stop.stopID] = stop;
                 }
 
@@ -482,74 +536,151 @@ namespace API_Request_Builder
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void buttonDeparturesQuery_Click(object sender, EventArgs e)
         {
-            rtfBox_json.Clear();
-            labelStatusDepartures.Text = "Request Ongoing";
-            selectedRoute = textBoxSelectedRoute.Text; // Hook here when calling from pico
-            selectedStop = textBoxSelectedStop.Text;
-            string nextURL = textBoxDeparturesQuery.Text;
+            await handleDeparturesQuery(textBoxDeparturesQuery.Text, textBoxSelectedStop.Text, textBoxSelectedRoute.Text);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="nextURL"></param>
+        /// <param name="stop"></param>
+        /// <param name="line"></param>
+        /// <returns></returns>
+        private async Task handleDeparturesQuery(string nextURL, string stop, string line)
+        {
+            rtfBox_json.Invoke((Action)(() =>
+            {
+                 rtfBox_json.Clear();
+            }));
+            labelStatusDepartures.Invoke((Action)(() =>
+            {
+                labelStatusDepartures.Text = "Request Ongoing";
+            }));
+
+
+            // Hoisted: resolve the zone once, accumulate across all pages.
+            TimeZoneInfo localZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            var collected = new List<Departure>();
+            string targetRoute = "1-" + line;
+            string stopKey = "1-" + stop;
+
             while (nextURL != null)
             {
                 var response = await client.GetAsync(nextURL);
                 response.EnsureSuccessStatusCode();
-                labelStatusDepartures.Text = "API Reply";
-
+                labelStatusDepartures.Invoke((Action)(() =>
+                {
+                    labelStatusDepartures.Text = "API Reply";
+                }));
                 var json = await response.Content.ReadAsStringAsync();
-                JsonDocument doc = JsonDocument.Parse(json);
+                JsonDocument doc = JsonDocument.Parse(json);   // dispose pooled buffers each page
                 JsonElement root = doc.RootElement;
                 JsonElement departureArray = root.GetProperty("stops").EnumerateArray().First();
-                labelStatusDepartures.Text = "Parsing...";
+                labelStatusDepartures.Invoke((Action)(() =>
+                {
+                    labelStatusDepartures.Text = "Parsing...";
+                }));
+                
 
                 foreach (JsonElement departures in departureArray.GetProperty("departures").EnumerateArray())
                 {
-                    if ((departures.GetProperty("trip").
-                                    GetProperty("route").
-                                    GetProperty("route_id").
-                                    GetString()) == selectedRoute)
+                    JsonElement trip = departures.GetProperty("trip");
+                    string routeID = trip.GetProperty("route").GetProperty("route_id").GetString();
+                    if (routeID != targetRoute) continue;
+
+                    JsonElement depObj = departures.GetProperty("departure");
+
+                    // Realtime estimate when present, else the schedule.
+                    string instant =
+                        depObj.TryGetProperty("estimated_utc", out var est)
+                            && est.ValueKind == JsonValueKind.String
+                            ? est.GetString()
+                            : depObj.GetProperty("scheduled_utc").GetString();
+
+                    if (string.IsNullOrEmpty(instant)) continue;   // guard: no usable time
+
+                    DateTimeOffset utc = DateTimeOffset.Parse(
+                        instant, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+
+                    collected.Add(new Departure
                     {
+                        time = utc,
+                        routeID = routeID,
+                        tripID = trip.TryGetProperty("trip_id", out var ti) ? ti.GetString() : null,
+                        directionId = trip.TryGetProperty("direction_id", out var di)
+                                          && di.ValueKind == JsonValueKind.Number ? di.GetInt32() : -1,
+                        headsign = trip.TryGetProperty("trip_headsign", out var hs)
+                                          && hs.ValueKind == JsonValueKind.String ? hs.GetString() : null,
+                    });
 
-                        string stopDepartureTime = departures.GetProperty("departure").GetProperty("scheduled_utc").GetString();
-
-                        DateTimeOffset utc = DateTimeOffset.Parse(stopDepartureTime);
-                        TimeZoneInfo localZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-                        DateTimeOffset local = TimeZoneInfo.ConvertTime(utc, localZone);
-
-                        string displayTime = local.ToString("HH:mm");
-                        rtfBoxAllDepartures.Text += displayTime + ' ';
-
-                        stopsDict[selectedStop].stopDepartures.Add(local);
-
-                    }
+                    var local = TimeZoneInfo.ConvertTime(utc, localZone);
+                    rtfBoxAllDepartures.Invoke((Action)(() =>
+                    {
+                        rtfBoxAllDepartures.Text += local.ToString("HH:mm") + ' ';
+                    }));
+                    
                 }
 
-                try
+                try   // pagination, unchanged
                 {
                     JsonElement meta = root.GetProperty("meta");
                     if (meta.TryGetProperty("next", out JsonElement nextElement)
-                    && nextElement.ValueKind != JsonValueKind.Null)
-                    {
+                        && nextElement.ValueKind != JsonValueKind.Null)
                         nextURL = nextElement.GetString();
-                    }
                     else
-                    {
                         nextURL = null;
-                    }
                 }
-                catch
-                {
-                    nextURL = null;
-                }
+                catch { nextURL = null; }
             }
-            labelStatusDepartures.Text = "Request Completed";
+
+            // Commit once, after all pages. Per-line replace = no duplicates, no cross-line wipeout.
+            if (stopsDict.TryGetValue(stopKey, out var stopObj))
+            {
+                lock (stopObj.depLock)                                  // no await inside this block — required
+                {
+                    stopObj.stopDepartures.RemoveAll(d => d.routeID == targetRoute);
+                    stopObj.stopDepartures.AddRange(collected);
+                    stopObj.departuresFetchedAt = DateTimeOffset.UtcNow;
+                }
+                waitTimesReady = true;
+                labelStatusDepartures.Invoke((Action)(() =>
+                {
+                    labelStatusDepartures.Text = "Request Completed";
+                }));
+                
+            }
+            else
+            {
+                labelStatusDepartures.Invoke((Action)(() =>
+                {
+                    labelStatusDepartures.Text = "Unknown stop: " + stopKey;   // don't index a missing key
+                }));
+                
+            }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void comboBoxAvailableRoutes_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBoxAvailableRoutes.SelectedItem == null) return;
             handle_AvailableRoutes(comboBoxAvailableRoutes.SelectedItem.ToString());
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="currentRoute"></param>
         private async void handle_AvailableRoutes(string currentRoute)
         {
             // Existing behavior: filter stops to all stops on the route (fallback)
@@ -567,6 +698,11 @@ namespace API_Request_Builder
             populateDirectionsComboBox(route);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void comboBoxAvailableStops_SelectedIndexChanged(object sender, EventArgs e)
         {
             string currentStop = comboBoxAvailableStops.SelectedItem.ToString();
@@ -574,6 +710,11 @@ namespace API_Request_Builder
             filterRoutesComboBox(currentStop);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void buttonResetSelection_Click(object sender, EventArgs e)
         {
             firstSelection = true;
@@ -590,6 +731,9 @@ namespace API_Request_Builder
             populateStopsComboBox();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void populateStopsComboBox()
         {
             List<string> orderedStops = new List<string>();
@@ -603,31 +747,60 @@ namespace API_Request_Builder
             comboBoxAvailableStops.Items.AddRange(orderedStops.ToArray());
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void buttonConfirmSelection_Click(object sender, EventArgs e)
         {
             if ((comboBoxAvailableRoutes.Text != "") && (comboBoxAvailableStops.Text != ""))
             {
-                string selectedStop = comboBoxAvailableStops.SelectedItem.ToString();
-                string stopID = selectedStop.Split(' ')[0];
-                string desiredTransitLandID = stopsDict[stopID].stopTransitlandID;
-
-                textBoxDeparturesQuery.Text = departuresQuery1 +
-                    desiredTransitLandID +
-                    departuresQuery2 +
-                    start_time +
-                    end_time +
-                    resultsNumber +
-                    relative_date;
-                textBoxSelectedRoute.Text = comboBoxAvailableRoutes.Text;
-                textBoxSelectedStop.Text = stopID;
+                string stop = comboBoxAvailableStops.SelectedItem.ToString();
+                string line = comboBoxAvailableRoutes.SelectedItem.ToString();
+                handle_API_URL(stop, line);
             }
         }
 
-        private void handle_API_URL(string test)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stop"></param>
+        /// <param name="line"></param>
+        private async void handle_API_URL(string stop, string line)
         {
+            string stopID = stop.Split(' ')[0];
+            string desiredTransitLandID = stopsDict["1-" + stop].stopTransitlandID;
 
+            string URL = departuresQuery1 +
+                desiredTransitLandID +
+                departuresQuery2 +
+                start_time +
+                end_time +
+                resultsNumber +
+                relative_date;
+
+            textBoxDeparturesQuery.Invoke((Action)(() =>
+            {
+                textBoxDeparturesQuery.Text = URL;
+            }));
+
+            textBoxSelectedRoute.Invoke((Action)(() =>
+            {
+                textBoxSelectedRoute.Text = "1-" + line;
+            }));
+
+            textBoxSelectedStop.Invoke((Action)(() =>
+            {
+                textBoxSelectedStop.Text = stopID;
+            }));
+            
+            await handleDeparturesQuery(URL, stop, line);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void populateRoutesComboBox()
         {
             comboBoxAvailableRoutes.Items.Clear(); //duplicate protection
@@ -637,6 +810,10 @@ namespace API_Request_Builder
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selectedRoute"></param>
         private void filterStopsComboBox(string selectedRoute)
         {
             List<string> orderedStops = new List<string>();
@@ -654,6 +831,10 @@ namespace API_Request_Builder
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selectedStop"></param>
         private void filterRoutesComboBox(string selectedStop)
         {
             string stopID = selectedStop.Split(' ')[0];
@@ -669,6 +850,11 @@ namespace API_Request_Builder
             firstSelection = false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="route"></param>
+        /// <returns></returns>
         private async Task LoadDirectionsForRouteAsync(Route route)
         {
             if (route.directionsLoaded) return;
@@ -680,10 +866,15 @@ namespace API_Request_Builder
             // The Dictionary value lets us look up the existing Direction so we can
             // append extra trip IDs to it for the union-of-stops merge later.
             var seenDirections = new Dictionary<string, Direction>();
+            var patternsSeen = new Dictionary<string, HashSet<int>>();
 
-            labelStatus.Text = "Loading directions...";
-
-            while (nextURL != null)
+            labelStatus.Invoke((Action)(() =>
+            {
+                labelStatus.Text = "Loading directions...";
+            }));
+            
+            int pageCount = 0;
+            while (nextURL != null && pageCount++ < 200)
             {
                 var response = await client.GetAsync(nextURL);
                 response.EnsureSuccessStatusCode();
@@ -733,16 +924,11 @@ namespace API_Request_Builder
                     // '|' literally, swap for a tuple key or any unambiguous delimiter.
                     string key = dirId + "|" + headsign;
 
+
                     if (seenDirections.TryGetValue(key, out Direction existing))
                     {
-                        // Same destination, different pattern → it's a variant
-                        // (short turn, express, etc). Remember its trip ID so
-                        // LoadStopsForDirectionAsync can later union in any extra stops.
-                        // Avoid re-adding the same pattern twice in case the feed
-                        // happens to repeat (it shouldn't, but cheap to guard).
-                        if (existing.stopPatternId != patternId
-                            && (existing.additionalTripIDs == null
-                                || !existing.additionalTripIDs.Contains(tripIntID)))
+                        // Keep exactly one trip per distinct stop_pattern_id.
+                        if (patternsSeen[key].Add(patternId))
                         {
                             if (existing.additionalTripIDs == null)
                                 existing.additionalTripIDs = new List<string>();
@@ -760,6 +946,7 @@ namespace API_Request_Builder
 
                     route.directionsOnThisRoute.Add(direction);
                     seenDirections[key] = direction;
+                    patternsSeen[key] = new HashSet<int> { patternId };
                 }
 
                 // Pagination
@@ -776,9 +963,20 @@ namespace API_Request_Builder
             }
             route.directionsOnThisRoute.Sort((a, b) => a.directionId.CompareTo(b.directionId));
             route.directionsLoaded = true;
-            labelStatus.Text = "Directions loaded";
+            labelStatus.Invoke((Action)(() =>
+            {
+                labelStatus.Text = "Directions loaded";
+            }));
+            await LoadStopsForDirectionAsync(route, route.directionsOnThisRoute.First());
+            await LoadStopsForDirectionAsync(route, route.directionsOnThisRoute.Last());
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="route"></param>
+        /// <param name="direction"></param>
+        /// <returns></returns>
         private async Task LoadStopsForDirectionAsync(Route route, Direction direction)
         {
             if (direction.stopsLoaded) return;
@@ -788,7 +986,11 @@ namespace API_Request_Builder
             string url = tripsQueryPrefix + route.routeOnestopID
                          + "/trips/" + direction.representativeTripID;
 
-            labelStatus.Text = "Loading stops for direction...";
+            labelStatus.Invoke((Action)(() =>
+            {
+                labelStatus.Text = "Loading stops for direction...";
+            }));
+
 
             var response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -802,7 +1004,10 @@ namespace API_Request_Builder
 
             if (!trip.TryGetProperty("stop_times", out JsonElement stopTimes))
             {
-                labelStatus.Text = "No stop_times in trip response";
+                labelStatus.Invoke((Action)(() =>
+                {
+                    labelStatus.Text = "No stop_times in trip response";
+                }));
                 return;
             }
 
@@ -862,11 +1067,20 @@ namespace API_Request_Builder
             }
 
             direction.stopsLoaded = true;
-            labelStatus.Text = "Stops loaded";
+            labelStatus.Invoke((Action)(() =>
+            {
+                labelStatus.Text = "Stops loaded";
+            }));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void comboBoxAvailableDirections_SelectedIndexChanged(object sender, EventArgs e)
         {
+            comboBoxAvailableDirections.Enabled = false;
             if (comboBoxAvailableDirections.SelectedItem == null) return;
             if (comboBoxAvailableRoutes.SelectedItem == null) return;
 
@@ -881,8 +1095,13 @@ namespace API_Request_Builder
 
             await LoadStopsForDirectionAsync(route, direction);
             filterStopsByDirection(direction);
+            comboBoxAvailableDirections.Enabled = true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="route"></param>
         private void populateDirectionsComboBox(Route route)
         {
             comboBoxAvailableDirections.Items.Clear();
@@ -898,6 +1117,10 @@ namespace API_Request_Builder
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="direction"></param>
         private void filterStopsByDirection(Direction direction)
         {
             comboBoxAvailableStops.Items.Clear();
@@ -911,6 +1134,11 @@ namespace API_Request_Builder
             comboBoxAvailableStops.Items.AddRange(orderedStops.ToArray());
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button_Connect_Click(object sender, EventArgs e)
         {
             if (!serialPort1.IsOpen)
@@ -952,6 +1180,10 @@ namespace API_Request_Builder
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="active_val"></param>
         private void set_Active(bool active_val)
         {
             button_Epoch.Enabled = active_val;
@@ -968,13 +1200,26 @@ namespace API_Request_Builder
             button_DoneSending.Enabled = active_val;
         }
 
-
-        private void send_frame(string message, int length, bool output)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="length"></param>
+        /// <param name="output"></param>
+        /// <param name="string_padding"></param>
+        private void send_frame(string message, int length, bool output, bool string_padding)
         {
             if (message.Length > 24)
             {
                 message = message.Substring(0, 23);
                 message += ")";
+            }
+            else if (string_padding)
+            {
+                for (int i = 0; i < (FRAME_LENGTH - length); i++)
+                {
+                    message += " ";
+                }
             }
             else
             {
@@ -998,6 +1243,11 @@ namespace API_Request_Builder
             
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button_Epoch_Click(object sender, EventArgs e)
         {
             TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
@@ -1005,13 +1255,22 @@ namespace API_Request_Builder
             handle_epoch(secondsSinceEpoch);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="epoch_val"></param>
         private void handle_epoch(long epoch_val)
         {
             string message = "(" + EPOCH_PREFIX + "_" + epoch_val.ToString() + ")";
             int length = message.Length;
-            send_frame(message, length, false);
+            send_frame(message, length, false, NORMAL_PADDING);
         }
 
+        /// <summary>
+        /// By stop!
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button_StopGood_Click(object sender, EventArgs e)
         {
             handle_StopValidity("1591", "G");
@@ -1026,7 +1285,7 @@ namespace API_Request_Builder
         {
             string message = "(" + STOP_VALIDITY_PREFIX + "_" + stop + good_or_bad + ")";
             int length = message.Length;
-            send_frame(message, length, true);
+            send_frame(message, length, true, NORMAL_PADDING);
         }
 
         private void button_NbrLines_Click(object sender, EventArgs e)
@@ -1039,7 +1298,7 @@ namespace API_Request_Builder
             saved_stop_or_line_str = stop;
             string message = "(" + LINE_NUMBER_PREFIX + "_" + (stopsDict[("1-" + stop)].routesAtThisStop.Count).ToString() + ")";
             int length = message.Length;
-            send_frame(message, length, true);
+            send_frame(message, length, true, NORMAL_PADDING);
         }
 
         private void button_LineID_Click(object sender, EventArgs e)
@@ -1054,11 +1313,17 @@ namespace API_Request_Builder
             {
                 string message = "(" + LINE_IDENTIFIER_PREFIX + "_" + route.routeName + ")";
                 int length = message.Length;
-                send_frame(message, length, true);
+                send_frame(message, length, true, NORMAL_PADDING);
                 Thread.Sleep(10);
             }
             saved_stop_or_line_str = "";
         }
+
+        /// <summary>
+        /// By line!
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button_LineGood_Click(object sender, EventArgs e)
         {
             handle_LineValidity("801", "G");
@@ -1073,7 +1338,7 @@ namespace API_Request_Builder
         {
             string message = "(" + LINE_VALIDITY_PREFIX + "_" + line + good_or_bad + ")";
             int length = message.Length;
-            send_frame(message, length, true);
+            send_frame(message, length, true, NORMAL_PADDING);
         }
 
         private void button_Directions_Click(object sender, EventArgs e)
@@ -1081,15 +1346,22 @@ namespace API_Request_Builder
 
         }
 
-        private void handle_directions(string line)
+        private async void handle_directions(string line)
         {
+            await LoadDirectionsForRouteAsync(routesDict["1-" + line]);
             saved_stop_or_line_str = line;
             foreach (Direction direction in routesDict["1-" + line].directionsOnThisRoute)
             {
                 string message = "(" + DIRECTIONS_PREFIX + "_" + direction.headsign + ")";
                 int length = message.Length;
-                send_frame(message, length, true);
+                send_frame(message, length, true, NORMAL_PADDING);
                 Thread.Sleep(10);
+            }
+            if (routesDict["1-" + line].directionsOnThisRoute.Count == 1)
+            {
+                string message = "(" + DIRECTIONS_PREFIX + "_" + "Pas de 2e direct." + ")";
+                int length = message.Length;
+                send_frame(message, length, true, NORMAL_PADDING);
             }
         }
         private void button_NbrStops_Click(object sender, EventArgs e)
@@ -1108,7 +1380,7 @@ namespace API_Request_Builder
 
             string message = "(" + STOP_NUMBER_PREFIX + "_" + (direction.stopsInThisDirection.Count).ToString() + ")";
             int length = message.Length;
-            send_frame(message, length, true);
+            send_frame(message, length, true, NORMAL_PADDING);
         }
 
         private void button_StopID_Click(object sender, EventArgs e)
@@ -1121,21 +1393,97 @@ namespace API_Request_Builder
             var direction = routesDict["1-" + saved_stop_or_line_str].directionsOnThisRoute[saved_direction];
             foreach (Stop stop in direction.stopsInThisDirection)
             {
-                string message = "(" + LINE_IDENTIFIER_PREFIX + "_" + stop.stopID + "_" + stop.stopName + ")";
+                string message = "(" + STOP_IDENTIFIER_PREFIX + "_" + stop.stopID.Substring(2) + "_" + stop.stopName; //No closing parenthesis here for string display
                 int length = message.Length;
-                send_frame(message, length, true);
+                send_frame(message, length, true, STRING_PADDING);
                 Thread.Sleep(10);
             }
         }
 
         private void button_TimeRemaining_Click(object sender, EventArgs e)
         {
-
+            handle_TimeRemaining("1211", "801");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stop"></param>
+        /// <param name="line"></param>
         private void handle_TimeRemaining(string stop, string line)
         {
+            waitTimesReady = false;
+            handle_API_URL(stop, line);
 
+            string stopKey = "1-" + stop;
+            string routeKey = "1-" + line;
+
+            RequestedWaitTimes savedTime = new RequestedWaitTimes();
+            savedTime.stopKey = stopKey;
+            savedTime.routeKey = routeKey;
+
+            waitTimesDict[waitTimesIndex] = savedTime;
+            waitTimesIndex++;
+
+            int[] minutes = new int[MaxPassages];
+            for (int i = 0; i < MaxPassages; i++)
+            {
+                minutes[i] = NoBusSentinel;
+            }
+
+            while (!waitTimesReady) ;
+
+            if (stopsDict.TryGetValue(stopKey, out var stopObj))
+            {
+                List<Departure> next;
+                lock (stopObj.depLock)                           // snapshot under the lock...
+                {
+                    next = stopObj.stopDepartures
+                        .Where(d => d.routeID == routeKey
+                                 && d.time >= DateTime.Now)
+                        .OrderBy(d => d.time)
+                        .Take(MaxPassages)
+                        .ToList();                               // ...materialize before releasing
+                }                                                // format OUTSIDE the lock
+
+                DateTimeOffset local = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.Local);
+                int hh = local.Hour;
+                int mm = local.Minute;
+                if (hh == 0)
+                {
+                    hh = 24;
+                }
+                for (int i = 0; i < next.Count; i++)
+                {
+                    int m = (int)Math.Floor((next[i].time - DateTime.Now).TotalMinutes);
+                    if (m > 99) m = hh * 100 + mm;
+                    if (m < 0) m = 0;                          // clamp tiny clock-skew negatives
+                    if (m > 9998) m = 9998;                    // keep 9999 reserved as the sentinel
+                    minutes[i] = m;
+                }
+            }
+
+            //line fixing when number < 99
+            if(line.Length < 3)
+            {
+                int line_int = int.Parse(line);
+                line = line_int.ToString("D3");
+            }
+
+            //Message 1
+            string message = "(" + TIME_REMAINING1_PREFIX + "_" + stop.ToString() + line.ToString() 
+                                                          + "_" + minutes[0].ToString("D4")
+                                                          + "_" + minutes[1].ToString("D4") + ")";
+            int length = message.Length;
+            send_frame(message, length, true, NORMAL_PADDING);
+            Thread.Sleep(10);
+
+            //Message 2
+            message = "(" + TIME_REMAINING2_PREFIX + "_" + stop.ToString() + line.ToString() + "_" + minutes[2].ToString("D4") + ")";
+            length = message.Length;
+            send_frame(message, length, true, NORMAL_PADDING);
+
+            refresh_tick = true;
         }
 
         private void button_DoneSending_Click(object sender, EventArgs e)
@@ -1149,17 +1497,17 @@ namespace API_Request_Builder
             rtf_UART.Invoke((Action)(() =>
             {
                 rtf_UART.AppendText(UART_Buffer_In + "\n");
+                rtf_UART.ScrollToCaret();
             }));
 
             if (UART_Buffer_In.Contains("(") && UART_Buffer_In.Contains(")")) //Complete message
             {
                 incoming_stop_or_line_str = FrameRouter.GetStopLine(UART_Buffer_In);
-                incoming_stop_or_line_int = int.Parse(incoming_stop_or_line_str);
                 switch (FrameRouter.GetAction(UART_Buffer_In))
                 {
                     //Stop side
                     case CHECK_STOP:
-                        if (stopsDict.ContainsKey("1-" + incoming_stop_or_line_str))
+                        if (stopsDict.ContainsKey("1-" + incoming_stop_or_line_str.TrimStart('0')))
                         {
                             handle_StopValidity(incoming_stop_or_line_str, "G");
                         }
@@ -1177,17 +1525,44 @@ namespace API_Request_Builder
 
                     //Line side
                     case CHECK_LINE:
-                        if (routesDict.ContainsKey("1-" + incoming_stop_or_line_str))
+                        switch(int.Parse(incoming_stop_or_line_str))
                         {
-                            handle_LineValidity(incoming_stop_or_line_str, "G");
-                        }
-                        else
-                        {
-                            handle_LineValidity(incoming_stop_or_line_str, "B");
+                            //Lines in the API not in RTCNomade for some reason
+                            case 14:
+                            case 15:
+                            case 25:
+                            case 75:
+                            case 77:
+                            case 315:
+                            case 331:
+                            case 332:
+                            case 344:
+                            case 377:
+                            case 391:
+                            case 577:
+                            case 400:
+                            case 402:
+                            case 405:
+                            case 410:
+                            case 420:
+                            case 915:
+                                handle_LineValidity(incoming_stop_or_line_str, "B");
+                                break;
+                            default:
+                                if (routesDict.ContainsKey("1-" + incoming_stop_or_line_str.TrimStart('0')))
+                                {
+                                    handle_LineValidity(incoming_stop_or_line_str, "G");
+                                }
+                                else
+                                {
+                                    handle_LineValidity(incoming_stop_or_line_str, "B");
+                                }
+                                break;
                         }
                         break;
+                        
                     case GET_DIRECTIONS:
-                        handle_directions(incoming_stop_or_line_str);
+                        handle_directions(incoming_stop_or_line_str.TrimStart('0'));
                         break;
                     case GET_STOPS:
                         handle_NbrStops(incoming_stop_or_line_str);
@@ -1195,9 +1570,18 @@ namespace API_Request_Builder
                     case ACK_STOP_QUANTITY:
                         handle_StopID();
                         break;
-
-
                     case GET_TIMES:
+                        refresh_tick = false;
+                        int first_underscore = UART_Buffer_In.IndexOf('_');
+                        int second_underscore = UART_Buffer_In.LastIndexOf("_");
+                        string stop = UART_Buffer_In.Substring(first_underscore + 1, 4);
+                        string line = UART_Buffer_In.Substring(second_underscore + 1, 3);
+                        handle_TimeRemaining(stop, line.TrimStart('0'));
+                        break;
+                    case RESET:
+                        refresh_tick = false;
+                        waitTimesIndex = 0;
+                        waitTimesDict.Clear();
                         break;
                 }
                 incoming_stop_or_line_str = "";
@@ -1213,6 +1597,77 @@ namespace API_Request_Builder
         private void button_reloadFromCache_Click(object sender, EventArgs e)
         {
             TryLoadCacheFromDisk();
+        }
+
+        private void timerPassageRefresh_Tick(object sender, EventArgs e)
+        {
+            if (refresh_tick == false)
+            {
+                return;
+            }
+            foreach (KeyValuePair<int, RequestedWaitTimes> kvp in waitTimesDict)
+            {
+                if (stopsDict.TryGetValue(kvp.Value.stopKey, out var stopObj))
+                {
+                    List<Departure> next;
+                    lock (stopObj.depLock)                           // snapshot under the lock...
+                    {
+                        next = stopObj.stopDepartures
+                            .Where(d => d.routeID == kvp.Value.routeKey
+                                     && d.time >= DateTime.Now)
+                            .OrderBy(d => d.time)
+                            .Take(MaxPassages)
+                            .ToList();                               // ...materialize before releasing
+                    }                                                // format OUTSIDE the lock
+
+                    int[] minutes = new int[MaxPassages];
+                    for (int i = 0; i < MaxPassages; i++)
+                    {
+                        minutes[i] = NoBusSentinel;
+                    }
+
+                    DateTimeOffset local = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.Local);
+                    int hh = local.Hour;
+                    int mm = local.Minute;
+                    if (hh == 0)
+                    {
+                        hh = 24;
+                    }
+                    for (int i = 0; i < next.Count; i++)
+                    {
+                        int m = (int)Math.Floor((next[i].time - DateTime.Now).TotalMinutes);
+                        if (m > 99) m = hh * 100 + mm;
+                        if (m < 0) m = 0;                          // clamp tiny clock-skew negatives
+                        if (m > 9998) m = 9998;                    // keep 9999 reserved as the sentinel
+                        minutes[i] = m;
+                    }
+
+                    string line_leading0 = "";
+                    //line fixing when number < 99
+                    if (kvp.Value.routeKey.Substring(2).Length < 3)
+                    {
+                        int line_int = int.Parse(kvp.Value.routeKey.Substring(2));
+                        line_leading0 = line_int.ToString("D3");
+                    }
+                    else
+                    {
+                        line_leading0 = kvp.Value.routeKey.Substring(2);
+                    }
+
+                    //Message 1
+                    string message = "(" + TIME_REMAINING1_PREFIX + "_" + kvp.Value.stopKey.Substring(2) + line_leading0
+                                                                      + "_" + minutes[0].ToString("D4")
+                                                                      + "_" + minutes[1].ToString("D4") + ")";
+                    int length = message.Length;
+                    send_frame(message, length, true, NORMAL_PADDING);
+                    Thread.Sleep(10);
+
+                    //Message 2
+                    message = "(" + TIME_REMAINING2_PREFIX + "_" + kvp.Value.stopKey.Substring(2) + line_leading0 + "_" + minutes[2].ToString("D4") + ")";
+                    length = message.Length;
+                    send_frame(message, length, true, NORMAL_PADDING);
+                }
+            }
         }
     }
 }

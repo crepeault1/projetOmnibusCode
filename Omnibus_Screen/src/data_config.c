@@ -27,4 +27,5 @@ void data_config_init(void)
   data_config_user_setup.number_added_stops = 0;
   data_config_user_setup.desired_display_mode = ALWAYS_ON;
   data_config_user_setup.desired_time_format = T_24;
+  data_config_user_setup.desired_wake_minutes = 1;
 }

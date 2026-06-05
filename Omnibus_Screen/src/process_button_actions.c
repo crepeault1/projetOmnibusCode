@@ -18,6 +18,8 @@
 #include "interface_buttons.h"
 #include "service_scheduler.h"
 #include "driver_HUB75E.h"
+#include "process_clock.h"
+#include "data_config.h"
 
 /* Variables -----------------------------------------------------------------*/
 PROCESS_BUTTON_ACTIONS process_button_actions;
@@ -77,7 +79,7 @@ void process_button_actions_run(void)
     interface_button3.information = INFORMATION_HANDLED;
     if (interface_button3.button_state == INTERFACEBUTTON_HELD)
     {
-      process_button_actions.button3_press_callback();
+      process_clock.awake_until_epoch = process_clock.epoch +(data_config_user_setup.desired_wake_minutes * 60);
     }
     else
     {

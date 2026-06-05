@@ -479,6 +479,7 @@ static void ui_def_num_encoder(PROCESS_UI_MASTER_STATE *st, int8_t delta)
     case 62:
     case 63:
     case 64:
+    case 65:
         if (st->digit_counter < 2)
         {
             write_character_to_array((uint8_t)('0' + v), 5, 1 + 1 * st->digit_counter);
@@ -820,9 +821,15 @@ bool exit_62(PROCESS_UI_MASTER_STATE *st)
     return EXIT_CLEAR;
 }
 
+bool exit_65(PROCESS_UI_MASTER_STATE *st)
+{
+    uint16_t minutes;
+    minutes = 10 * st->selected_digit[0] + st->selected_digit[1];
+    data_config_user_setup.desired_wake_minutes = minutes;
+}
+
 bool arrival_83(PROCESS_UI_MASTER_STATE *st)
 {
-    st->cursor_position = data_config_user_setup.desired_time_format;
     load_accent_region(data_config_user_setup.desired_time_format);
     write_string_to_array("  ", 0, 9, 0, 2);
     return EXIT_CLEAR;

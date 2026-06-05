@@ -712,10 +712,10 @@ PROCESS_UI_SCREEN time_activate_24_1_screen = {
         {"                     "}},
 
     .accent_regions = {
-        {{1,5}, {2,5}},
-        {{1,5}, {2,5}},
-        {{6,5}, {7,5}},
-        {{6,5}, {7,5}},
+        {{1,5}, {1,5}},
+        {{2,5}, {2,5}},
+        {{6,5}, {6,5}},
+        {{7,5}, {7,5}},
         {{14,5}, {21,5}}
     }    
     };
@@ -747,10 +747,10 @@ PROCESS_UI_SCREEN time_activate_24_2_screen = {
         {"                     "}},
 
     .accent_regions = {
-        {{1,5}, {2,5}},
-        {{1,5}, {2,5}},
-        {{6,5}, {7,5}},
-        {{6,5}, {7,5}},
+        {{1,5}, {1,5}},
+        {{2,5}, {2,5}},
+        {{6,5}, {6,5}},
+        {{7,5}, {7,5}},
         {{14,5}, {21,5}}
     }    
     };
@@ -832,11 +832,11 @@ PROCESS_UI_SCREEN wake_duration_screen = {
  
     .behavior = UI_BEHAVIOR_NUMERIC_ENTRY,
     .select_button_action = 0,
-    .max_select_actions = 2,
-    .num_digits = 1,
-    .menu_button_actions = 2,
+    .max_select_actions = 3,
+    .num_digits = 2,
+    .menu_button_actions = 3,
     .screen_on_arrival = NULL,
-    .screen_on_exit = NULL,
+    .screen_on_exit = exit_65,
     
     .screen_text = {
         {"                     "},
@@ -844,14 +844,14 @@ PROCESS_UI_SCREEN wake_duration_screen = {
         {"Dur\xE9""e de r\xE9veil apr\xE8s"},
         {"appui du bouton :    "},
         {" \xA9                   "},
-        {"[##] min.     Valider"},
+        {"[00] min.     Valider"},
         {" \xAE                   "},
         {"                     "}},
 
     .accent_regions = {
-        {{1,5}, {2,5}},
+        {{1,5}, {1,5}},
+        {{2,5}, {2,5}},
         {{14,5}, {21,5}},
-        {{0,0}, {0,0}},
         {{0,0}, {0,0}},
         {{0,0}, {0,0}},
     }    

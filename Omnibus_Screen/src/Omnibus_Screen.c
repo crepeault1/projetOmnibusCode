@@ -39,26 +39,26 @@
 #include "data_font_5x7.h"
 #include "frame_assembly.h"
 
-//Data
+// Data
 #include "data_config.h"
 #include "data_UI_refactored.h"
 
-//Services
+// Services
 #include "service_scheduler.h"
 #include "service_UART.h"
 
-//Drivers
+// Drivers
 #include "driver_buttons.h"
 #include "driver_UART.h"
 #include "driver_rotary_encoder.h"
 #include "driver_timer.h"
 #include "driver_HUB75E.h"
 
-//Interfaces
+// Interfaces
 #include "interface_buttons.h"
 #include "interface_rotary_encoder.h"
 
-//Processes
+// Processes
 #include "process_button_actions.h"
 #include "process_rotary_encoder_actions.h"
 #include "process_UI_refactored.h"
@@ -82,27 +82,27 @@ void init(void)
 {
     stdio_init_all();
 
-    //Data
+    // Data
     data_config_init();
     data_UI_init();
-    
-    //Services
+
+    // Services
     service_scheduler_init();
     service_UART_init(uart0, UART_TX_PIN, UART_RX_PIN, BAUD_RATE);
 
-    //Drivers
+    // Drivers
     driver_timer_init();
     driver_HUB75E_init();
     driver_buttons_init();
     driver_encoder_init();
 
-    //Interfaces
+    // Interfaces
     interface_button1_init();
     interface_button2_init();
     interface_button3_init();
     interface_encoder_init();
 
-    //Processes
+    // Processes
     process_button_actions_init();
     process_encoder_actions_init();
     process_UI_init();
@@ -110,7 +110,7 @@ void init(void)
     process_communication_init();
     process_clock_init();
 
-    //I2C init
+    // I2C init
     i2c_init(I2C_PORT, 400 * 1000);
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
@@ -125,17 +125,21 @@ int main()
     uint8_t test_frame[24] = {"(SCHK_6453)+++++++++++++"};
     int counter = 0;
     init();
-    //character_buffer_to_pixel_buffer(frame_menu);
-    //pixel_buffer_to_frame_buffer();
+    // character_buffer_to_pixel_buffer(frame_menu);
+    // pixel_buffer_to_frame_buffer();
     while (1)
     {
         if (systick_flag)
         {
             systick_flag = false;
             service_scheduler_run();
-            driver_HUB75E_run();
+            if (process_clock.display_on)
+            {
+                driver_HUB75E_run();
+            }
+
             counter++;
-            if(counter > 100) 
+            if (counter > 100)
             {
                 counter = 0;
             }

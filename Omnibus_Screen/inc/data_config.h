@@ -48,6 +48,7 @@ typedef struct
     uint16_t desired_start_minute;
     uint16_t desired_stop_hour;
     uint16_t desired_stop_minute;
+    uint16_t desired_wake_minutes;
 
     uint16_t added_stops_and_lines[MAX_STOPS][2];
     uint8_t added_stops_and_lines_index;

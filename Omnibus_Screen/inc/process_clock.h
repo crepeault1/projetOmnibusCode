@@ -23,6 +23,7 @@ typedef struct
     uint32_t epoch;
     bool update;
     bool display_on;
+    uint32_t awake_until_epoch;
 } PROCESS_CLOCK;
 
 extern PROCESS_CLOCK process_clock;

@@ -108,6 +108,8 @@ bool exit_61(PROCESS_UI_MASTER_STATE *st);
 
 bool exit_62(PROCESS_UI_MASTER_STATE *st);
 
+bool exit_65(PROCESS_UI_MASTER_STATE *st);
+
 bool arrival_83(PROCESS_UI_MASTER_STATE *st);
 
 #endif

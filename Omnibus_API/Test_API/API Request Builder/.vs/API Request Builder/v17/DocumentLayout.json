@@ -1,13 +1,13 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\2312455\\Documents\\Omnibus_Prog\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\",
+  "WorkspaceRootPath": "C:\\Users\\samcr\\Documents\\Programming\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{EDB55204-1C48-4941-ADE5-46A6266BC080}|API Request Builder\\API Request Builder.csproj|c:\\users\\2312455\\documents\\omnibus_prog\\projetomnibuscode\\omnibus_api\\test_api\\api request builder\\api request builder\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{EDB55204-1C48-4941-ADE5-46A6266BC080}|API Request Builder\\API Request Builder.csproj|c:\\users\\samcr\\documents\\programming\\projetomnibuscode\\omnibus_api\\test_api\\api request builder\\api request builder\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{EDB55204-1C48-4941-ADE5-46A6266BC080}|API Request Builder\\API Request Builder.csproj|solutionrelative:api request builder\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EDB55204-1C48-4941-ADE5-46A6266BC080}|API Request Builder\\API Request Builder.csproj|C:\\Users\\2312455\\Documents\\Omnibus_Prog\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\api request builder\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{EDB55204-1C48-4941-ADE5-46A6266BC080}|API Request Builder\\API Request Builder.csproj|C:\\Users\\samcr\\Documents\\Programming\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\api request builder\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{EDB55204-1C48-4941-ADE5-46A6266BC080}|API Request Builder\\API Request Builder.csproj|solutionrelative:api request builder\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
@@ -24,11 +24,11 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Form1.cs",
-              "DocumentMoniker": "C:\\Users\\2312455\\Documents\\Omnibus_Prog\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\API Request Builder\\Form1.cs",
+              "DocumentMoniker": "C:\\Users\\samcr\\Documents\\Programming\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\API Request Builder\\Form1.cs",
               "RelativeDocumentMoniker": "API Request Builder\\Form1.cs",
-              "ToolTip": "C:\\Users\\2312455\\Documents\\Omnibus_Prog\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\API Request Builder\\Form1.cs",
+              "ToolTip": "C:\\Users\\samcr\\Documents\\Programming\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\API Request Builder\\Form1.cs",
               "RelativeToolTip": "API Request Builder\\Form1.cs",
-              "ViewState": "AgIAAFcEAAAAAAAAAAAAAGkEAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAADkGAAAAAAAAAAAlwEcGAAA/AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-21T18:45:05.535Z",
               "EditorCaption": ""
@@ -37,13 +37,12 @@
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "Form1.cs [Design]",
-              "DocumentMoniker": "C:\\Users\\2312455\\Documents\\Omnibus_Prog\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\API Request Builder\\Form1.cs",
+              "DocumentMoniker": "C:\\Users\\samcr\\Documents\\Programming\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\API Request Builder\\Form1.cs",
               "RelativeDocumentMoniker": "API Request Builder\\Form1.cs",
-              "ToolTip": "C:\\Users\\2312455\\Documents\\Omnibus_Prog\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\API Request Builder\\Form1.cs [Design]",
+              "ToolTip": "C:\\Users\\samcr\\Documents\\Programming\\projetOmnibusCode\\Omnibus_API\\Test_API\\API Request Builder\\API Request Builder\\Form1.cs [Design]",
               "RelativeToolTip": "API Request Builder\\Form1.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-17T13:21:11.91Z",
-              "EditorCaption": " [Design]"
+              "WhenOpened": "2026-03-17T13:21:11.91Z"
             }
           ]
         }

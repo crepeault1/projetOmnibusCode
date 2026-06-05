@@ -51,17 +51,24 @@ void process_clock_handle(void)
         bool in_window = window_crosses_midnight
                              ? (minutes_now >= minutes_start || minutes_now < minutes_stop)
                              : (minutes_now >= minutes_start && minutes_now < minutes_stop);
-        if (data_config_user_setup.desired_display_mode == PROGRAMMED_TIME)
+
+        if (process_clock.epoch < process_clock.awake_until_epoch)
+        {
+            process_clock.display_on = true;
+        }
+        else if (data_config_user_setup.desired_display_mode == ALWAYS_ON)
+        {
+            process_clock.display_on = true;
+        }
+        else if (data_config_user_setup.desired_display_mode == PROGRAMMED_TIME)
         {
             if (in_window)
             {
                 process_clock.display_on = true;
-                write_character_to_array('T', 0, 20);
             }
             else
             {
                 process_clock.display_on = false;
-                write_character_to_array('F', 0, 20);
             }
         }
 
